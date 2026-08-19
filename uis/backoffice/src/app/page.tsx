@@ -33,6 +33,14 @@ export default function Home() {
           Analizar incidencias
         </Link>
 
+        <Link
+          href="/suppliers"
+          className="button"
+          style={{ marginLeft: "12px" }}
+        >
+          Directorio de proveedores
+        </Link>
+
       </section>
 
     </main>

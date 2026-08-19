@@ -1,0 +1,18 @@
+[project]
+name = "trackflow-incidents-analysis"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi",
+  "python-multipart",
+  "pydantic[email]",
+  "tinydb",
+  "uvicorn[standard]",
+]
+
+[project.scripts]
+seed = "services.api.seed:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

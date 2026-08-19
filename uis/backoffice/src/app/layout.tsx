@@ -1,6 +1,9 @@
 import type {
   Metadata
 } from "next";
+import type {
+  ReactNode
+} from "react";
 
 
 import Link from "next/link";
@@ -29,7 +32,7 @@ export default function RootLayout({
 }: Readonly<{
 
   children:
-    React.ReactNode;
+    ReactNode;
 
 }>) {
 
@@ -59,6 +62,10 @@ export default function RootLayout({
 
               <Link href="/incidents">
                 Incidencias
+              </Link>
+
+              <Link href="/suppliers">
+                Proveedores
               </Link>
 
             </div>

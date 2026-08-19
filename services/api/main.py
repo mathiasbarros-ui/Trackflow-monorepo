@@ -14,14 +14,20 @@ from packages.incidents_analysis import (
     analyze_csv_text,
     summary_to_csv,
 )
+from services.api.routes.suppliers import (
+    router,
+)
 
 
 app = FastAPI(
     title=(
         "Trackflow Incidents API"
     ),
-    version="1.0.0",
+    version="1.0",
 )
+
+
+app.include_router(router)
 
 
 LAST_ANALYSIS = None
@@ -129,6 +135,7 @@ async def analyze_incidents(
     return result
 
 
+
 @app.get(
     "/api/incidents/results/export"
 )
@@ -151,7 +158,6 @@ def export_results():
             LAST_ANALYSIS
         )
     )
-
 
     return Response(
         content=csv_content,
