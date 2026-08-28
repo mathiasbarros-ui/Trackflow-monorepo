@@ -94,6 +94,24 @@ input {
 }
 
 
+.navButton {
+  opacity:
+    0.85;
+
+  margin:
+    0;
+
+  padding:
+    8px 12px;
+
+  border-radius:
+    8px;
+
+  background:
+    #2b3138;
+}
+
+
 .navLinks a:hover {
   opacity:
     1;
@@ -286,6 +304,96 @@ button:disabled {
 
   color:
     #a12020;
+}
+
+
+.success {
+  margin-top:
+    20px;
+
+  padding:
+    14px;
+
+  border-radius:
+    8px;
+
+  background:
+    #e7f8ee;
+
+  color:
+    #14532d;
+}
+
+
+.authCard {
+  max-width:
+    560px;
+}
+
+
+.authForm {
+  display:
+    grid;
+
+  gap:
+    12px;
+}
+
+
+.authForm label {
+  display:
+    grid;
+
+  gap:
+    8px;
+
+  font-weight:
+    700;
+}
+
+
+.authForm input {
+  width:
+    100%;
+
+  border:
+    1px solid #d1d5db;
+
+  border-radius:
+    8px;
+
+  padding:
+    10px 12px;
+
+  background:
+    white;
+}
+
+
+.authFootnote {
+  margin-top:
+    16px;
+
+  color:
+    #4b5563;
+}
+
+
+.authFootnote a {
+  text-decoration:
+    underline;
+}
+
+
+.fieldError {
+  color:
+    #b91c1c;
+
+  font-size:
+    13px;
+
+  font-weight:
+    600;
 }
 
 

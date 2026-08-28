@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useState } from "react";
 
+import { useAuth } from "@/hooks/useAuth";
+
 
 type SupplierStatus = "activo" | "suspendido";
 type SupplierCategory = "electronics" | "logistics" | "metals";
@@ -47,6 +49,7 @@ const initialForm: SupplierForm = {
 
 
 export default function SuppliersPage() {
+  const { authFetch } = useAuth();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [countryFilter, setCountryFilter] = useState<"" | "US" | "ES">("");
   const [categoryFilter, setCategoryFilter] = useState<"" | SupplierCategory>("");
@@ -73,7 +76,7 @@ export default function SuppliersPage() {
         ? `/backend/suppliers?${queryString}`
         : "/backend/suppliers";
 
-      const response = await fetch(url, { cache: "no-store" });
+      const response = await authFetch(url, { method: "GET" });
       const data = (await response.json().catch(() => null)) as Supplier[] | { detail?: string } | null;
 
       if (!response.ok) {
@@ -110,7 +113,7 @@ export default function SuppliersPage() {
     }
 
     try {
-      const response = await fetch("/backend/suppliers", {
+      const response = await authFetch("/backend/suppliers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -149,7 +152,7 @@ export default function SuppliersPage() {
     }
 
     try {
-      const response = await fetch(`/backend/suppliers/${supplierId}/rate`, {
+      const response = await authFetch(`/backend/suppliers/${supplierId}/rate`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rate: parsedRate }),
@@ -176,7 +179,7 @@ export default function SuppliersPage() {
     const nextStatus: SupplierStatus = supplier.status === "activo" ? "suspendido" : "activo";
 
     try {
-      const response = await fetch(`/backend/suppliers/${supplier.id}/status`, {
+      const response = await authFetch(`/backend/suppliers/${supplier.id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: nextStatus }),

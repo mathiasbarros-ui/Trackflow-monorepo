@@ -5,8 +5,8 @@ import type {
   ReactNode
 } from "react";
 
-
-import Link from "next/link";
+import AppShell from "@/components/auth/AppShell";
+import Providers from "@/app/providers";
 
 import "./globals.css";
 
@@ -41,41 +41,11 @@ export default function RootLayout({
     <html lang="es">
 
       <body>
-
-        <nav className="navbar">
-
-          <div className="navContent">
-
-            <Link
-              href="/"
-              className="logo"
-            >
-              TRACKFLOW
-            </Link>
-
-
-            <div className="navLinks">
-
-              <Link href="/">
-                Inicio
-              </Link>
-
-              <Link href="/incidents">
-                Incidencias
-              </Link>
-
-              <Link href="/suppliers">
-                Proveedores
-              </Link>
-
-            </div>
-
-          </div>
-
-        </nav>
-
-
-        {children}
+        <Providers>
+          <AppShell>
+            {children}
+          </AppShell>
+        </Providers>
 
       </body>
 
