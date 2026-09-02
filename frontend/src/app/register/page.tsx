@@ -29,8 +29,8 @@ export default function RegisterPage() {
       nextErrors.email = "Ingresa un email valido";
     }
 
-    if (password.length < 6) {
-      nextErrors.password = "La contrasena debe tener al menos 6 caracteres";
+    if (password.length < 8) {
+      nextErrors.password = "La contrasena debe tener al menos 8 caracteres";
     }
 
     setFieldErrors(nextErrors);
@@ -92,6 +92,7 @@ export default function RegisterPage() {
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
+              minLength={8}
               required
               autoComplete="new-password"
             />
