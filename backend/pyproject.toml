@@ -1,0 +1,26 @@
+[project]
+name = "trackflow-backend"
+version = "0.1.0"
+description = "API unificada de TrackFlow"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.141.1",
+    "libpass[bcrypt]>=1.9.3",
+    "python-dotenv>=1.2.3",
+    "python-jose[cryptography]>=3.5.0",
+    "python-multipart>=0.0.32",
+    "resend>=2.23.0",
+    "tinydb>=4.9.0",
+    "uvicorn[standard]>=0.52.4",
+]
+
+[project.scripts]
+seed-suppliers = "app.suppliers.seed:main"
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]

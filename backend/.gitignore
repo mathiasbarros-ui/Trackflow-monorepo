@@ -1,0 +1,5 @@
+.env
+.venv/
+database/trackflow_db.json
+__pycache__/
+*.pyc

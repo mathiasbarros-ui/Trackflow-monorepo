@@ -1,0 +1,12 @@
+Back-Front structure-function/
+
+.env
+.venv*/
+**/.env
+**/.venv*/
+**/myenv/
+**/__pycache__/
+**/*.pyc
+**/*.egg-info/
+**/node_modules/
+**/.next/
