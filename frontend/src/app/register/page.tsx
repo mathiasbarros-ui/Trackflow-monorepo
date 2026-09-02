@@ -30,7 +30,7 @@ export default function RegisterPage() {
     }
 
     if (password.length < 8) {
-      nextErrors.password = "La contrasena debe tener al menos 8 caracteres";
+      nextErrors.password = "La contraseña debe tener al menos 8 caracteres";
     }
 
     setFieldErrors(nextErrors);
@@ -87,7 +87,7 @@ export default function RegisterPage() {
           </label>
 
           <label>
-            Contrasena
+            Contraseña
             <input
               type="password"
               value={password}

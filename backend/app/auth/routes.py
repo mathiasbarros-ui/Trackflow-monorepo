@@ -180,7 +180,7 @@ def change_password(
     ):
         raise HTTPException(
             status_code=400,
-            detail="La contrasena actual es incorrecta",
+            detail="La contraseña actual es incorrecta",
         )
 
     from app.auth.services import update_user
@@ -190,7 +190,7 @@ def change_password(
         {"hashed_password": bcrypt.hash(data.new_password)},
     )
 
-    return {"message": "Contrasena actualizada correctamente"}
+    return {"message": "Contraseña actualizada correctamente"}
 
 
 @router.post("/forgot-password")
@@ -263,7 +263,7 @@ def reset_password(data: ResetPasswordInput):
         doc_ids=[reset_token.doc_id],
     )
 
-    return {"message": "Contrasena actualizada correctamente"}
+    return {"message": "Contraseña actualizada correctamente"}
 
 
 @router.post("/login")

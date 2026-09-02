@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
   return (
     <main className="container">
       <section className="card authCard">
-        <h1>Recuperar contrasena</h1>
+        <h1>Recuperar contraseña</h1>
         {sent ? (
           <p className="success">Si esa direccion esta registrada, recibiras un enlace en breve.</p>
         ) : (

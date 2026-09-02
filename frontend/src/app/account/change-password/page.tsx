@@ -19,7 +19,7 @@ export default function ChangePasswordPage() {
     setError("");
     setSuccess("");
     if (newPassword !== confirmPassword) {
-      setError("Las contrasenas nuevas no coinciden.");
+      setError("Las contraseñas nuevas no coinciden.");
       return;
     }
     setLoading(true);
@@ -31,14 +31,14 @@ export default function ChangePasswordPage() {
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => null)) as { detail?: string } | null;
-        throw new Error(data?.detail ?? "No se pudo cambiar la contrasena.");
+        throw new Error(data?.detail ?? "No se pudo cambiar la contraseña.");
       }
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setSuccess("Contrasena actualizada correctamente.");
+      setSuccess("Contraseña actualizada correctamente.");
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "No se pudo cambiar la contrasena.");
+      setError(requestError instanceof Error ? requestError.message : "No se pudo cambiar la contraseña.");
     } finally {
       setLoading(false);
     }
@@ -47,12 +47,12 @@ export default function ChangePasswordPage() {
   return (
     <main className="container">
       <section className="card authCard">
-        <h1>Cambiar contrasena</h1>
+        <h1>Cambiar contraseña</h1>
         <form className="authForm" onSubmit={handleSubmit}>
-          <label>Contrasena actual<input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} required autoComplete="current-password" /></label>
-          <label>Nueva contrasena<input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
-          <label>Confirmar nueva contrasena<input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
-          <button type="submit" disabled={loading}>{loading ? "Guardando..." : "Cambiar contrasena"}</button>
+          <label>Contraseña actual<input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} required autoComplete="current-password" /></label>
+          <label>Nueva contraseña<input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
+          <label>Confirmar nueva contraseña<input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
+          <button type="submit" disabled={loading}>{loading ? "Guardando..." : "Cambiar contraseña"}</button>
         </form>
         {error ? <p className="error">{error}</p> : null}
         {success ? <p className="success">{success}</p> : null}

@@ -17,7 +17,7 @@ export default function ResetPasswordPage() {
     event.preventDefault();
     setError("");
     if (newPassword !== confirmPassword) {
-      setError("Las contrasenas no coinciden.");
+      setError("Las contraseñas no coinciden.");
       return;
     }
     setLoading(true);
@@ -42,11 +42,11 @@ export default function ResetPasswordPage() {
   return (
     <main className="container">
       <section className="card authCard">
-        <h1>Restablecer contrasena</h1>
+        <h1>Restablecer contraseña</h1>
         {token ? <form className="authForm" onSubmit={handleSubmit}>
-          <label>Nueva contrasena<input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
-          <label>Confirmar contrasena<input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
-          <button type="submit" disabled={loading}>{loading ? "Guardando..." : "Cambiar contrasena"}</button>
+          <label>Nueva contraseña<input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
+          <label>Confirmar contraseña<input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
+          <button type="submit" disabled={loading}>{loading ? "Guardando..." : "Cambiar contraseña"}</button>
         </form> : <p className="error">El enlace no contiene un token valido.</p>}
         {error ? <p className="error">{error}</p> : null}
         <p className="authFootnote"><Link href="/forgot-password">Solicitar otro enlace</Link></p>

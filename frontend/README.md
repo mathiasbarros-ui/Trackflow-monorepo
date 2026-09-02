@@ -87,6 +87,6 @@ npm run start
 ## Funcionalidad
 
 - Registro, login y sesion global con Context + `useReducer`.
-- Rutas protegidas, perfil y cambio de contrasena.
-- Recuperacion de contrasena por email.
+- Rutas protegidas, perfil y cambio de contraseña.
+- Recuperacion de contraseña por email.
 - Directorio y gestion de proveedores.

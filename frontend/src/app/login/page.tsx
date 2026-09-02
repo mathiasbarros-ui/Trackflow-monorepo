@@ -42,8 +42,8 @@ export default function LoginPage() {
     <main className="container">
       <section className="card authCard">
         <h1>Iniciar sesion</h1>
-        <p>Usa tu email y contrasena para entrar al backoffice.</p>
-        {resetSuccess ? <p className="success">Contrasena actualizada. Ya puedes iniciar sesion.</p> : null}
+        <p>Usa tu email y contraseña para entrar al backoffice.</p>
+        {resetSuccess ? <p className="success">Contraseña actualizada. Ya puedes iniciar sesion.</p> : null}
 
         <form className="authForm" onSubmit={handleSubmit}>
           <label>
@@ -58,7 +58,7 @@ export default function LoginPage() {
           </label>
 
           <label>
-            Contrasena
+            Contraseña
             <input
               type="password"
               value={password}
@@ -79,7 +79,7 @@ export default function LoginPage() {
           No tienes cuenta? <Link href="/register">Registrate aqui</Link>
         </p>
         <p className="authFootnote">
-          <Link href="/forgot-password">Olvidaste tu contrasena?</Link>
+          <Link href="/forgot-password">¿Olvidaste tu contraseña?</Link>
         </p>
       </section>
     </main>

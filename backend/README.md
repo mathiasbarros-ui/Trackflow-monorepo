@@ -41,7 +41,7 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
 Las variables de Resend son opcionales durante el desarrollo. Sin
-`RESEND_API_KEY`, registro, login, perfil y cambio de contrasena funcionan,
+`RESEND_API_KEY`, registro, login, perfil y cambio de contraseña funcionan,
 pero no se envia el correo de recuperacion.
 
 ## Iniciar el backend
@@ -105,7 +105,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 ## Modulos
 
-- `app/auth/`: JWT, usuarios, perfiles y recuperacion de contrasena.
+- `app/auth/`: JWT, usuarios, perfiles y recuperacion de contraseña.
 - `app/suppliers/`: CRUD y seed de proveedores.
 - `main.py`: aplicacion FastAPI y endpoints de incidencias.
 - `database/`: persistencia local de TinyDB.
@@ -117,14 +117,14 @@ Esta API ya soporta el flujo JWT para frontend React/Next.js:
 - `POST /auth/login` acepta JSON (`email`, `password`) y devuelve `access_token`.
 - `POST /auth/token` mantiene compatibilidad con formularios OAuth2.
 - `POST /users` registra usuario y también devuelve `access_token`.
-- `POST /auth/change-password` cambia la contrasena del usuario autenticado.
+- `POST /auth/change-password` cambia la contraseña del usuario autenticado.
 - `POST /auth/forgot-password` solicita un enlace de recuperacion sin revelar si el email existe.
 - `POST /auth/reset-password` consume un token de un solo uso que vence en 30 minutos.
 - Rutas protegidas (`/auth/me`, `/profiles/me`, `/users*`) requieren `Authorization: Bearer <token>`.
 
 ## Autorizar Swagger con el access token
 
-1. Ejecuta `POST /auth/login` con el email y la contrasena.
+1. Ejecuta `POST /auth/login` con el email y la contraseña.
 2. Copia solamente el valor de `access_token` de la respuesta.
 3. Pulsa **Authorize** en la parte superior de Swagger.
 4. Pega el token en el campo `HTTPBearer` y confirma con **Authorize**.

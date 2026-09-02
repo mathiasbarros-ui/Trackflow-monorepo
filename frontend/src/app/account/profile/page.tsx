@@ -146,7 +146,7 @@ export default function AccountProfilePage() {
         {error ? <p className="error">{error}</p> : null}
         {success ? <p className="success">{success}</p> : null}
         <p className="authFootnote">
-          <Link href="/account/change-password">Cambiar contrasena</Link>
+          <Link href="/account/change-password">Cambiar contraseña</Link>
         </p>
       </section>
     </main>
