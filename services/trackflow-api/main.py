@@ -1,10 +1,19 @@
+import sys
+from pathlib import Path
+
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 from app.auth.profiles import router as profiles_router
 from app.auth.routes import router as auth_router
 from app.auth.users import router as users_router
+from app.incidents.routes import router as incidents_router
 from app.suppliers.routes import router as suppliers_router
 
 try:
@@ -32,6 +41,7 @@ app.add_middleware(
 app.include_router(users_router)
 app.include_router(profiles_router)
 app.include_router(auth_router)
+app.include_router(incidents_router)
 app.include_router(suppliers_router)
 
 

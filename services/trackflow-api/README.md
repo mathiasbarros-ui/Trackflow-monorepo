@@ -1,7 +1,7 @@
 # Backend TrackFlow
 
 API FastAPI unificada para autenticacion, perfiles, usuarios, proveedores y
-analisis de incidencias.
+gestion y analisis de incidencias.
 
 ## Requisitos
 
@@ -19,7 +19,7 @@ python --version
 Ejecuta estos comandos desde la raiz del repositorio:
 
 ```bash
-cd backend
+cd services/trackflow-api
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
@@ -49,9 +49,9 @@ pero no se envia el correo de recuperacion.
 Cada vez que abras una terminal nueva, ejecuta desde la raiz:
 
 ```bash
-cd backend
+cd services/trackflow-api
 source .venv/bin/activate
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 No cierres esa terminal mientras uses la aplicacion. El backend queda
@@ -75,7 +75,7 @@ La respuesta esperada es:
 
 ## Cargar proveedores iniciales
 
-Con el entorno virtual activo y dentro de `backend/`:
+Con el entorno virtual activo y dentro de `services/trackflow-api/`:
 
 ```bash
 seed-suppliers
@@ -89,8 +89,8 @@ Este repositorio ya puede tener un entorno `.venv-1` en la raiz. En ese caso
 tambien puedes iniciar la API así:
 
 ```bash
-source ../.venv-1/bin/activate
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+source ../../.venv-1/bin/activate
+python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## Problemas comunes
@@ -100,14 +100,15 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 - `uvicorn: command not found`: el entorno virtual no esta activo o faltan las
   dependencias; activa `.venv` y ejecuta
   `python -m pip install -r requirements.txt`.
-- `ModuleNotFoundError: app`: ejecutaste Uvicorn fuera de `backend/`; entra en
+- `ModuleNotFoundError: app`: ejecutaste Uvicorn fuera de `services/trackflow-api/`; entra en
   esa carpeta antes de iniciar el servidor.
 
 ## Modulos
 
 - `app/auth/`: JWT, usuarios, perfiles y recuperacion de contraseña.
+- `app/incidents/`: endpoints de registro, listado, resumen y cambio de estado.
 - `app/suppliers/`: CRUD y seed de proveedores.
-- `main.py`: aplicacion FastAPI y endpoints de incidencias.
+- `main.py`: aplicacion FastAPI y registro de routers.
 - `database/`: persistencia local de TinyDB.
 
 ## Auth contract para frontend

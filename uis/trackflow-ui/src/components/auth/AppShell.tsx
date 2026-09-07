@@ -25,6 +25,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
             {isAuthenticated ? (
               <>
                 <Link href="/">Inicio</Link>
+                <Link href="/incidents">Incidencias</Link>
                 <Link href="/suppliers">Proveedores</Link>
                 <Link href="/account/profile">Perfil</Link>
                 <button type="button" className="navButton" onClick={logout}>

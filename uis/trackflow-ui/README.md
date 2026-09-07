@@ -20,7 +20,7 @@ npm --version
 Desde la raiz del repositorio:
 
 ```bash
-cd frontend
+cd uis/trackflow-ui
 npm install
 ```
 
@@ -33,7 +33,7 @@ continua o para una instalacion completamente reproducible puedes usar
 Por defecto no necesitas crear ningun archivo: el proxy de Next apunta a
 `http://127.0.0.1:8000`.
 
-Para usar otro host o puerto, crea `frontend/.env.local`:
+Para usar otro host o puerto, crea `uis/trackflow-ui/.env.local`:
 
 ```env
 BACKEND_API_URL=http://127.0.0.1:8000
@@ -48,7 +48,7 @@ Primero deja el backend ejecutandose. Después abre otra terminal y, desde la
 raiz del repositorio, ejecuta:
 
 ```bash
-cd frontend
+cd uis/trackflow-ui
 npm run dev
 ```
 
@@ -68,7 +68,7 @@ curl http://localhost:3000/backend/suppliers
 ## Compilar para produccion
 
 ```bash
-cd frontend
+cd uis/trackflow-ui
 npm run build
 npm run start
 ```
@@ -82,7 +82,7 @@ npm run start
 - El puerto 3000 esta ocupado: detén el proceso anterior con `Ctrl+C` o inicia
   temporalmente con `npm run dev -- -p 3001`.
 - Cambiaste `BACKEND_API_URL` y no se aplica: reinicia el proceso de Next.
-- Faltan modulos de Node: ejecuta `npm install` dentro de `frontend/`.
+- Faltan modulos de Node: ejecuta `npm install` dentro de `uis/trackflow-ui/`.
 
 ## Funcionalidad
 
@@ -90,3 +90,4 @@ npm run start
 - Rutas protegidas, perfil y cambio de contraseña.
 - Recuperacion de contraseña por email.
 - Directorio y gestion de proveedores.
+- Gestor de incidencias con registro, filtros, listado, resumen y cambio de estado.

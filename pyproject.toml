@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.scripts]
-seed = "backend.app.suppliers.seed:main"
+seed-incidents = "scripts.seed_incidents:main"
 
 [build-system]
 requires = ["hatchling"]

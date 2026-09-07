@@ -554,7 +554,9 @@ button:disabled {
 
 
 .supplierForm,
-.supplierFilters {
+.supplierFilters,
+.incidentForm,
+.incidentFilters {
   display:
     grid;
 
@@ -572,6 +574,10 @@ button:disabled {
 .supplierForm input,
 .supplierForm select,
 .supplierFilters select,
+.incidentForm input,
+.incidentForm select,
+.incidentForm textarea,
+.incidentFilters select,
 .supplierActions input {
   width:
     100%;
@@ -590,6 +596,25 @@ button:disabled {
 }
 
 
+.incidentForm textarea {
+  min-height:
+    96px;
+
+  resize:
+    vertical;
+
+  grid-column:
+    span 2;
+}
+
+
+.incidentMetrics .metric {
+  border-top:
+    4px solid #2563eb;
+}
+
+
+.incidentList,
 .supplierList {
   list-style:
     none;
@@ -608,6 +633,7 @@ button:disabled {
 }
 
 
+.incidentRow,
 .supplierRow {
   border:
     1px solid #e5e7eb;
@@ -632,6 +658,7 @@ button:disabled {
 }
 
 
+.incidentMeta,
 .supplierMeta {
   margin-top:
     4px;
@@ -641,6 +668,7 @@ button:disabled {
 }
 
 
+.incidentActions,
 .supplierActions {
   display:
     flex;
@@ -650,6 +678,51 @@ button:disabled {
 
   align-items:
     center;
+}
+
+
+.incidentRow p {
+  margin:
+    8px 0;
+
+  color:
+    #4b5563;
+}
+
+
+.incidentStatus-open {
+  background:
+    #dbeafe;
+
+  color:
+    #1d4ed8;
+}
+
+
+.incidentStatus-in_progress {
+  background:
+    #fef3c7;
+
+  color:
+    #92400e;
+}
+
+
+.incidentStatus-resolved {
+  background:
+    #dcfce7;
+
+  color:
+    #166534;
+}
+
+
+.incidentStatus-discarded {
+  background:
+    #f3f4f6;
+
+  color:
+    #374151;
 }
 
 
@@ -737,12 +810,21 @@ button:disabled {
 
 
   .supplierForm,
-  .supplierFilters {
+  .supplierFilters,
+  .incidentForm,
+  .incidentFilters {
     grid-template-columns:
       1fr;
   }
 
 
+  .incidentForm textarea {
+    grid-column:
+      auto;
+  }
+
+
+  .incidentRow,
   .supplierRow {
     flex-direction:
       column;
@@ -752,6 +834,7 @@ button:disabled {
   }
 
 
+  .incidentActions,
   .supplierActions {
     flex-direction:
       column;
