@@ -79,6 +79,8 @@ def authenticate_user(email: str, password: str):
 
     if not bcrypt.verify(password, user["hashed_password"]):
         return None
+    if not user["is_active"]:
+        return None
 
     return user
 
@@ -131,9 +133,15 @@ def get_current_user(
                 status_code=401,
                 detail="Usuario no válido"
             )
-
+        if not user["is_active"]:
+            raise HTTPException(
+                status_code=401,
+                detail="Usuario no activo"
+            )
+            
         return user
-
+    
+        
     except JWTError:
         raise HTTPException(
             status_code=401,
