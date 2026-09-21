@@ -36,20 +36,28 @@ async function proxyRequest(
     cache: "no-store",
   };
 
-  const upstream = await fetch(target, requestInit);
+  try {
+    const upstream = await fetch(target, requestInit);
 
-  const responseHeaders = new Headers();
-  RESPONSE_HEADERS_TO_FORWARD.forEach((name) => {
-    const value = upstream.headers.get(name);
-    if (value) {
-      responseHeaders.set(name, value);
-    }
-  });
+    const responseHeaders = new Headers();
+    RESPONSE_HEADERS_TO_FORWARD.forEach((name) => {
+      const value = upstream.headers.get(name);
+      if (value) {
+        responseHeaders.set(name, value);
+      }
+    });
 
-  return new NextResponse(upstream.body, {
-    status: upstream.status,
-    headers: responseHeaders,
-  });
+    return new NextResponse(upstream.body, {
+      status: upstream.status,
+      headers: responseHeaders,
+    });
+  } catch (error) {
+    console.error("Error al proxyar la petición al backend:", error);
+    return NextResponse.json(
+      { detail: "No se pudo conectar con el backend. Inténtalo de nuevo más tarde." },
+      { status: 502 },
+    );
+  }
 }
 
 export async function GET(

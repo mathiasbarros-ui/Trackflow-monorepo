@@ -120,18 +120,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       headers.set("Authorization", `Bearer ${currentToken}`);
     }
 
-    const response = await fetch(buildApiUrl(input), {
-      ...init,
-      headers,
-      cache: "no-store",
-    });
+    try {
+      const response = await fetch(buildApiUrl(input), {
+        ...init,
+        headers,
+        cache: "no-store",
+      });
 
-    if (response.status === 401) {
-      logout();
-      throw new Error("Sesion expirada. Volve a iniciar sesion.");
+      if (response.status === 401) {
+        logout();
+        throw new Error("Sesion expirada. Volve a iniciar sesion.");
+      }
+
+      return response;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("Sesion expirada")) {
+        throw error;
+      }
+
+      console.error("Error de red en authFetch:", error);
+      throw new Error("No se pudo conectar con el servidor.");
     }
-
-    return response;
   }
 
   async function fetchMe(): Promise<CurrentUser> {

@@ -1,4 +1,5 @@
 import hashlib
+import logging
 import os
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -24,6 +25,7 @@ from app.auth.services import (
 
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(
@@ -234,10 +236,10 @@ def forgot_password(data: ForgotPasswordInput):
     if os.getenv("RESEND_API_KEY"):
         try:
             send_password_reset_email(user["email"], raw_token)
-        except Exception as error:
-            print(f"Error enviando email de recuperacion: {error}")
+        except RuntimeError:
+            logger.warning("No se pudo enviar el email de recuperación", exc_info=False)
     else:
-        print("RESEND_API_KEY no configurada; no se envio email de recuperacion")
+        logger.info("RESEND_API_KEY no configurada; no se envio email de recuperacion")
 
     return {"message": generic_message}
 
