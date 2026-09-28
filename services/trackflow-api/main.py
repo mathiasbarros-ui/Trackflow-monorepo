@@ -1,5 +1,11 @@
 import sys
 from pathlib import Path
+from sqlmodel import SQLModel
+
+from app.auth.database import engine
+import models
+from routers.inventory import router as inventory_router
+
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,6 +27,8 @@ try:
 except ModuleNotFoundError:
     analyze_csv_text = None
     summary_to_csv = None
+
+
 
 
 app = FastAPI(
@@ -46,6 +54,10 @@ app.include_router(suppliers_router)
 
 
 LAST_ANALYSIS = None
+
+SQLModel.metadata.create_all(engine)
+
+app.include_router(inventory_router)
 
 
 @app.get("/")
