@@ -27,6 +27,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
                 <Link href="/">Inicio</Link>
                 <Link href="/incidents">Incidencias</Link>
                 <Link href="/suppliers">Proveedores</Link>
+                <Link href="/backoffice/inventory/products">Inventario</Link>
                 <Link href="/account/profile">Perfil</Link>
                 <button type="button" className="navButton" onClick={logout}>
                   Cerrar sesion

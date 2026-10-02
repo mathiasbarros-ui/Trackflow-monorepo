@@ -28,6 +28,7 @@ engine = create_engine(
     DATABASE_URL,
     echo=False,
     pool_pre_ping=True,
+    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
 )
 
 def get_db():

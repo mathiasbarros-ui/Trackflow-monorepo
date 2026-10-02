@@ -27,14 +27,22 @@ python -m pip install -r requirements.txt
 cp .env.example .env
 ```
 
+La raiz del backend es `services/trackflow-api/`, donde estan `main.py`,
+`requirements.txt` y `.env`. Ejecuta Uvicorn desde esa carpeta para que se
+cargue `.env` y la ruta relativa de SQLite apunte a `database/`.
+
 En Windows PowerShell, activa el entorno con:
 
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-Abre `.env` y reemplaza `JWT_SECRET` por una clave larga y aleatoria. Puedes
-generarla con:
+Este servicio usa el entorno `.venv` dentro de `services/trackflow-api/`.
+Los comandos de esta guia no dependen de un `.venv-1` en la raiz del repo.
+
+La plantilla configura SQLite para desarrollo y crea la base en
+`database/trackflow.db`. Abre `.env` y reemplaza `JWT_SECRET` por una clave
+larga y aleatoria. Puedes generarla con:
 
 ```bash
 python -c "import secrets; print(secrets.token_urlsafe(48))"
@@ -46,7 +54,7 @@ pero no se envia el correo de recuperacion.
 
 ## Iniciar el backend
 
-Cada vez que abras una terminal nueva, ejecuta desde la raiz:
+Cada vez que abras una terminal nueva, ejecuta desde la raiz del repositorio:
 
 ```bash
 cd services/trackflow-api
@@ -82,16 +90,6 @@ seed-suppliers
 ```
 
 El comando puede ejecutarse varias veces sin duplicar proveedores existentes.
-
-## Arranque rapido en este Codespace
-
-Este repositorio ya puede tener un entorno `.venv-1` en la raiz. En ese caso
-tambien puedes iniciar la API así:
-
-```bash
-source ../../.venv-1/bin/activate
-python -m uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
 
 ## Problemas comunes
 
@@ -144,7 +142,8 @@ Las variables disponibles en `.env` son:
 
 | Variable               | Uso                                     | Requerida  |
 | ---------------------- | --------------------------------------- | ---------- |
-| `JWT_SECRET`           | Firma los tokens de sesion              | Si         |
+| `DATABASE_URL`         | Base SQL (SQLite local por defecto)     | Si         |
+| `JWT_SECRET`           | Firma los tokens; cambia el valor local | Produccion |
 | `JWT_ALGORITHM`        | Algoritmo JWT, normalmente `HS256`      | Si         |
 | `ACCESS_TOKEN_MINUTES` | Duracion de la sesion                   | Si         |
 | `FRONTEND_URL`         | URL incluida en enlaces de recuperacion | Para email |

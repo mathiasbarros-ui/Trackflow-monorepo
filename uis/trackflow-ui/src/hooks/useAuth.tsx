@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useReducer,
@@ -102,17 +103,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  function navigate(to: string) {
+  const navigate = useCallback((to: string) => {
     router.push(to);
-  }
+  }, [router]);
 
-  function logout() {
+  const logout = useCallback(() => {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     dispatch({ type: "LOGOUT" });
     navigate("/login");
-  }
+  }, [navigate]);
 
-  async function authFetch(input: string, init: RequestInit = {}) {
+  const authFetch = useCallback(async (input: string, init: RequestInit = {}) => {
     const currentToken = localStorage.getItem(TOKEN_STORAGE_KEY);
     const headers = new Headers(init.headers ?? {});
 
@@ -141,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Error de red en authFetch:", error);
       throw new Error("No se pudo conectar con el servidor.");
     }
-  }
+  }, [logout]);
 
   async function fetchMe(): Promise<CurrentUser> {
     const response = await authFetch("/auth/me", {
