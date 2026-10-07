@@ -18,12 +18,12 @@ npm --version
 ## Primera instalacion
 
 Ejecuta los comandos desde la raiz del repositorio. La raiz del proyecto Next
-es `uis/trackflow-ui/`, donde estan `package.json` y `package-lock.json`; `src/`
+es `uis/backoffice/`, donde estan `package.json` y `package-lock.json`; `src/`
 contiene el codigo de la aplicacion y no es la carpeta desde la que se instala
 el proyecto.
 
 ```bash
-cd uis/trackflow-ui
+cd uis/backoffice
 npm install
 ```
 
@@ -36,7 +36,7 @@ continua o para una instalacion completamente reproducible puedes usar
 Por defecto no necesitas crear ningun archivo: el proxy de Next apunta a
 `http://127.0.0.1:8000`.
 
-Para usar otro host o puerto, crea `uis/trackflow-ui/.env.local`:
+Para usar otro host o puerto, crea `uis/backoffice/.env.local`:
 
 ```env
 BACKEND_API_URL=http://127.0.0.1:8000
@@ -51,18 +51,18 @@ Primero inicia el backend siguiendo `services/trackflow-api/README.md`. Luego,
 desde la raiz del repositorio, inicia el frontend:
 
 ```bash
-cd uis/trackflow-ui
+cd uis/backoffice
 npm run dev
 ```
 
-Si tu terminal ya esta dentro de `uis/trackflow-ui/src/`, puedes iniciar Next
+Si tu terminal ya esta dentro de `uis/backoffice/src/`, puedes iniciar Next
 sin cambiar de carpeta con:
 
 ```bash
 npm --prefix .. run dev
 ```
 
-En ambos casos npm ejecuta el script de `uis/trackflow-ui/package.json` y Next
+En ambos casos npm ejecuta el script de `uis/backoffice/package.json` y Next
 queda en `http://localhost:3000`.
 
 No cierres esa terminal mientras uses la aplicacion. Abre:
@@ -83,7 +83,7 @@ curl http://localhost:3000/backend/suppliers
 Ejecuta estos comandos desde la raiz del repositorio:
 
 ```bash
-cd uis/trackflow-ui
+cd uis/backoffice
 npm run build
 npm run start
 ```
@@ -95,10 +95,10 @@ npm run start
 - `ECONNREFUSED` o respuestas `500` desde `/backend/*`: inicia primero FastAPI
   en `http://localhost:8000`.
 - El puerto 3000 esta ocupado: detén el proceso anterior con `Ctrl+C` o inicia
-  temporalmente desde `uis/trackflow-ui/` con `npm run dev -- -p 3001`.
+  temporalmente desde `uis/backoffice/` con `npm run dev -- -p 3001`.
 - Cambiaste `BACKEND_API_URL` y no se aplica: reinicia el proceso de Next.
 - `next: not found` o faltan modulos: ejecuta `npm install` dentro de
-  `uis/trackflow-ui/`, no dentro de `src/`.
+  `uis/backoffice/`, no dentro de `src/`.
 
 ## Funcionalidad
 

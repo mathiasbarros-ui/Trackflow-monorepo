@@ -1,0 +1,61 @@
+services:
+  interfaces:
+    build:
+      context: ./uis
+    env_file:
+      - path: ./.env.example
+      - path: ./.env
+        required: false
+    ports:
+      - "${WEBSITE_PORT:-3000}:${WEBSITE_PORT:-3000}"
+      - "${BACKOFFICE_PORT:-3001}:${BACKOFFICE_PORT:-3001}"
+    volumes:
+      - ./uis:/workspace/uis
+      - website_dependencies:/workspace/uis/website/node_modules
+      - backoffice_dependencies:/workspace/uis/backoffice/node_modules
+      - website_next:/workspace/uis/website/.next
+      - backoffice_next:/workspace/uis/backoffice/.next
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - trackflow
+
+  backend:
+    build:
+      context: ./services
+      additional_contexts:
+        shared_packages: ./packages
+    env_file:
+      - path: ./.env.example
+      - path: ./.env
+        required: false
+    ports:
+      - "${API_PORT:-8000}:${API_PORT:-8000}"
+    volumes:
+      - ./services:/workspace/services
+      - ./packages:/workspace/packages:ro
+      - backend_database:/workspace/services/trackflow-api/database
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import os, urllib.request; urllib.request.urlopen('http://backend:' + os.environ['API_PORT'] + '/', timeout=3)"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+    networks:
+      - trackflow
+
+networks:
+  trackflow:
+    name: "${DOCKER_NETWORK_NAME:-trackflow-development}"
+
+volumes:
+  website_dependencies:
+  backoffice_dependencies:
+  website_next:
+  backoffice_next:
+  backend_database:

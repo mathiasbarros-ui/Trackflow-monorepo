@@ -1,8 +1,12 @@
 Back-Front structure-function/
 
 .env
+.env.*
+!.env.example
 .venv*/
 **/.env
+**/.env.*
+!**/.env.example
 **/.venv*/
 **/myenv/
 **/__pycache__/
@@ -10,3 +14,7 @@ Back-Front structure-function/
 **/*.egg-info/
 **/node_modules/
 **/.next/
+**/*.tsbuildinfo
+**/database/.jwt-secret
+**/database/*.db
+**/database/*.db-*
