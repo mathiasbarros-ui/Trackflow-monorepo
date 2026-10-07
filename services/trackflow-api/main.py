@@ -1,3 +1,5 @@
+import json
+import os
 import sys
 from pathlib import Path
 from sqlmodel import SQLModel
@@ -39,7 +41,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=json.loads(os.getenv("CORS_ORIGINS", '["http://localhost:3000"]')),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
