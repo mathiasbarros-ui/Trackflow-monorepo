@@ -22,6 +22,12 @@ from app.auth.services import (
     get_user_by_email,
     get_user_by_id
 )
+from app.auth.schemas import (
+    AccessTokenResponse,
+    CurrentUserResponse,
+    LoginResponse,
+    MessageResponse,
+)
 
 
 load_dotenv()
@@ -151,7 +157,7 @@ def get_current_user(
         )
 
 
-@router.post("/token")
+@router.post("/token", response_model=AccessTokenResponse)
 def login_token(
     form: OAuth2PasswordRequestForm = Depends()
 ):
@@ -179,7 +185,7 @@ def login_token(
     }
 
 
-@router.post("/change-password")
+@router.post("/change-password", response_model=MessageResponse)
 def change_password(
     data: ChangePasswordInput,
     current_user: dict = Depends(get_current_user),
@@ -203,7 +209,7 @@ def change_password(
     return {"message": "Contraseña actualizada correctamente"}
 
 
-@router.post("/forgot-password")
+@router.post("/forgot-password", response_model=MessageResponse)
 def forgot_password(data: ForgotPasswordInput):
     generic_message = (
         "Si esa direccion esta registrada, recibiras un enlace en breve."
@@ -244,7 +250,7 @@ def forgot_password(data: ForgotPasswordInput):
     return {"message": generic_message}
 
 
-@router.post("/reset-password")
+@router.post("/reset-password", response_model=MessageResponse)
 def reset_password(data: ResetPasswordInput):
     token_hash = hash_reset_token(data.token)
     reset_token = reset_tokens_table.get(
@@ -276,7 +282,11 @@ def reset_password(data: ResetPasswordInput):
     return {"message": "Contraseña actualizada correctamente"}
 
 
-@router.post("/login")
+@router.post(
+    "/login",
+    response_model=LoginResponse,
+    response_model_exclude_unset=True,
+)
 def login(
     data: LoginInput
 ):
@@ -309,7 +319,11 @@ def login(
     }
 
 
-@router.get("/me")
+@router.get(
+    "/me",
+    response_model=CurrentUserResponse,
+    response_model_exclude_unset=True,
+)
 def get_me(
     current_user: dict = Depends(get_current_user)
 ):

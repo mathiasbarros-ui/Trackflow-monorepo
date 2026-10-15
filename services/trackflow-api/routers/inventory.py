@@ -10,6 +10,7 @@ from schemas import (
     StockEntryResponse,
     StockExitCreate,
     StockExitResponse,
+    OrderResponse,
 )
 
 # Ajustá solamente este import a la ubicación REAL de tu auth existente.
@@ -171,7 +172,7 @@ def create_outbound_order(
     return StockExitResponse.model_validate(order)
 
 
-@router.get("/orders")
+@router.get("/orders", response_model=list[OrderResponse])
 def get_orders(
     db: Session = Depends(get_db),
 ):
