@@ -8,6 +8,12 @@ from passlib.hash import bcrypt
 from pydantic import BaseModel, Field
 
 from app.auth.routes import create_access_token, get_current_user
+from app.auth.schemas import (
+    MessageResponse,
+    RegistrationResponse,
+    UserListResponse,
+    UserResponse,
+)
 from app.auth.services import (
     create_user,
     delete_user,
@@ -70,7 +76,7 @@ def owner_or_admin(
         )
 
 
-@router.post("")
+@router.post("", response_model=RegistrationResponse)
 def register(data: UserCreate):
 
     if get_user_by_email(data.email):
@@ -118,17 +124,22 @@ def register(data: UserCreate):
     }
 
 
-@router.get("")
+@router.get("", response_model=list[UserListResponse])
 def list_users(
     current_user: dict = Depends(get_current_user)
 ):
     return [
-        public_user(user)
+        {
+            "id": user["id"],
+            "is_active": user["is_active"],
+            "role": user["role"],
+            "created_at": user["created_at"],
+        }
         for user in get_all_users()
     ]
 
 
-@router.get("/{user_id}")
+@router.get("/{user_id}", response_model=UserResponse)
 def get_user(
     user_id: str,
     current_user: dict = Depends(get_current_user)
@@ -149,7 +160,7 @@ def get_user(
     return public_user(user)
 
 
-@router.put("/{user_id}")
+@router.put("/{user_id}", response_model=UserResponse)
 def edit_user(
     user_id: str,
     data: UserUpdate,
@@ -201,7 +212,7 @@ def edit_user(
     return public_user(user)
 
 
-@router.delete("/{user_id}")
+@router.delete("/{user_id}", response_model=MessageResponse)
 def remove_user(
     user_id: str,
     current_user: dict = Depends(get_current_user)

@@ -11,6 +11,8 @@ def test_register_camino_exitoso(client, monkeypatch):
 
     assert response.status_code == 200
     assert response.json()["access_token"] == "token"
+    assert "email" not in response.json()["user"]
+    assert "hashed_password" not in response.text
 
 
 def test_register_caso_limite_password_minima(client, monkeypatch):
@@ -39,7 +41,12 @@ def test_list_camino_exitoso(auth_client, monkeypatch):
     response = auth_client.get("/users")
 
     assert response.status_code == 200
-    assert response.json() == [user]
+    assert response.json() == [{
+        "id": "1",
+        "is_active": True,
+        "role": "user",
+        "created_at": "now",
+    }]
 
 
 def test_list_caso_limite_vacia(auth_client, monkeypatch):

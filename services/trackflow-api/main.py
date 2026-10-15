@@ -12,6 +12,7 @@ from routers.inventory import router as inventory_router
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
+from pydantic import BaseModel
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -39,6 +40,10 @@ app = FastAPI(
 )
 
 
+class HomeResponse(BaseModel):
+    message: str
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=json.loads(os.getenv("CORS_ORIGINS", '["http://localhost:3000"]')),
@@ -62,7 +67,7 @@ SQLModel.metadata.create_all(engine)
 app.include_router(inventory_router)
 
 
-@app.get("/")
+@app.get("/", response_model=HomeResponse)
 def home():
     return {
         "message": "TrackFlow API funcionando"
@@ -108,7 +113,19 @@ async def analyze_incidents(file: UploadFile = File(...)):
     return result
 
 
-@app.get("/api/incidents/results/export")
+@app.get(
+    "/api/incidents/results/export",
+    response_class=Response,
+    responses={
+        200: {
+            "content": {
+                "text/csv": {
+                    "schema": {"type": "string", "format": "binary"},
+                },
+            },
+        },
+    },
+)
 def export_results():
     if summary_to_csv is None:
         raise HTTPException(

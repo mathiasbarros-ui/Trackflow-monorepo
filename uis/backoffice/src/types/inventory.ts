@@ -43,5 +43,5 @@ export type StockMovement = {
   quantity: number;
   created_at: string;
   user_uuid: string;
-  sku: Omit<SKU, "current_stock">;
+  sku: Pick<SKU, "id" | "name" | "sku" | "warehouse">;
 };

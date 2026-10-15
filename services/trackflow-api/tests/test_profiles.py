@@ -2,7 +2,10 @@ from app.auth import profiles
 
 
 def test_profile_get_camino_exitoso(auth_client, monkeypatch):
-    profile = {"user_id": "user-1", "name": "Ana"}
+    profile = {
+        "user_id": "user-1",
+        "name": "Ana",
+    }
     monkeypatch.setattr(profiles, "get_profile_by_user_id", lambda user_id: profile)
 
     response = auth_client.get("/profiles/me")
@@ -47,6 +50,15 @@ def test_profile_put_caso_limite_cuerpo_vacio(auth_client, monkeypatch):
 
     assert response.status_code == 200
     assert calls == [{}]
+
+
+def test_profile_put_caso_limite_perfil_inexistente(auth_client, monkeypatch):
+    monkeypatch.setattr(profiles, "update_profile", lambda user_id, data: None)
+
+    response = auth_client.put("/profiles/me", json={"name": "Ana"})
+
+    assert response.status_code == 200
+    assert response.json() is None
 
 
 def test_profile_put_modo_fallo_sin_autenticacion(client):
