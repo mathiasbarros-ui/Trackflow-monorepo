@@ -2,28 +2,27 @@ import json
 import os
 import sys
 from pathlib import Path
+
 from sqlmodel import SQLModel
 
-from app.auth.database import engine
-import models
-from routers.inventory import router as inventory_router
-
+REPO_ROOT = Path(__file__).resolve().parents[2]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
+from app.auth.database import engine
 from app.auth.profiles import router as profiles_router
 from app.auth.routes import router as auth_router
 from app.auth.users import router as users_router
 from app.incidents.routes import router as incidents_router
 from app.suppliers.routes import router as suppliers_router
+import models
+from routers.inventory import router as inventory_router
+
 
 try:
     from packages.incidents_analysis import analyze_csv_text, summary_to_csv
@@ -32,11 +31,10 @@ except ModuleNotFoundError:
     summary_to_csv = None
 
 
-
-
 app = FastAPI(
     title="TrackFlow API",
     version="1.0.0",
+    swagger_ui_parameters={"docExpansion": "none"},
 )
 
 
@@ -46,7 +44,8 @@ class HomeResponse(BaseModel):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=json.loads(os.getenv("CORS_ORIGINS", '["http://localhost:3000"]')),
+    allow_origins=json.loads(
+        os.getenv("CORS_ORIGINS", '["http://localhost:3000"]')),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -83,7 +82,8 @@ async def analyze_incidents(file: UploadFile = File(...)):
         )
 
     if not file.filename:
-        raise HTTPException(status_code=400, detail="El fichero no tiene nombre.")
+        raise HTTPException(
+            status_code=400, detail="El fichero no tiene nombre.")
 
     if not file.filename.lower().endswith(".csv"):
         raise HTTPException(
