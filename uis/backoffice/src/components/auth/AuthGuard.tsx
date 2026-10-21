@@ -26,7 +26,7 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
     }
   }, [isAuthenticated, loading, navigate, pathname]);
 
-  if (loading) {
+  if (loading && !isPublicRoute(pathname)) {
     return null;
   }
 

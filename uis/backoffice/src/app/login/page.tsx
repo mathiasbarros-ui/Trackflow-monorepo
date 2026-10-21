@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
+import AuthCard from "@/components/auth/AuthCard";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginPage() {
@@ -39,10 +40,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="container">
-      <section className="card authCard">
-        <h1>Iniciar sesion</h1>
-        <p>Usa tu email y contraseña para entrar al backoffice.</p>
+    <AuthCard title="Iniciar sesion" description="Usa tu email y contraseña para entrar al backoffice.">
         {resetSuccess ? <p className="success">Contraseña actualizada. Ya puedes iniciar sesion.</p> : null}
 
         <form className="authForm" onSubmit={handleSubmit}>
@@ -81,7 +79,6 @@ export default function LoginPage() {
         <p className="authFootnote">
           <Link href="/forgot-password">¿Olvidaste tu contraseña?</Link>
         </p>
-      </section>
-    </main>
+    </AuthCard>
   );
 }

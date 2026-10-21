@@ -2,9 +2,9 @@
 
 ## Entorno de medición
 
-- Fecha: No consta en las capturas.
-- Navegador: Chrome DevTools Lighthouse; la versión no aparece.
-- Modo de ejecución (dev o producción): No verificable en la evidencia.
+- Fecha: 2026/10/16
+- Navegador: Chrome DevTools Lighthouse 13.4.1
+- Modo de ejecución (dev o producción): dev.
 - URLs medidas: Las capturas muestran `/login`, una ruta truncada `/backoffice/inve...`, `/suppliers` y `/docs#/incidents...`. El host visible es un dominio de Codespaces, pero no se conserva completo.
 - Dispositivos simulados: Mobile y Desktop. En las capturas de DevTools se ven ventanas Responsive de 768 x 860 y 1024 x 860 y el control indica “No throttling”; no se confirma la configuración de simulación usada por Lighthouse.
 - Limitación: las capturas muestran una advertencia de Lighthouse sobre datos de IndexedDB y recomiendan repetir en incógnito. Las puntuaciones pueden estar afectadas por datos guardados.
@@ -41,6 +41,9 @@ Resultados transcritos de las seis capturas de `audit/before/`. Las etiquetas de
 - Archivo o componente involucrado: `services/trackflow-api/main.py` crea FastAPI con la documentación `/docs` habilitada por defecto y registra varios routers. No hay evidencia suficiente para señalar qué tarea concreta produjo el TBT.
 - Causa raíz comprobada (o hipótesis a verificar): Hipótesis: el renderizado de Swagger UI y del esquema OpenAPI contribuye al bloqueo en móvil. No está comprobada; también pueden influir el entorno, la caché o la ejecución no productiva.
 - Solución propuesta: repetir Lighthouse en incógnito y en el modo de ejecución acordado; revisar las tareas largas y auditorías de TBT de la página `/docs`. Solo si el perfil confirma que Swagger/esquema domina el bloqueo, valorar reducir la documentación expuesta o separar su carga. No deshabilitar `/docs` sin validar su necesidad operativa.
+- Recomendación aplicada como prueba acotada: `services/trackflow-api/main.py` configura `swagger_ui_parameters={"docExpansion": "none"}` para iniciar Swagger con las operaciones plegadas. No se deshabilitan `/docs`, `/openapi.json` ni las operaciones.
+- Verificación realizada: el código de la versión instalada de FastAPI acepta `swagger_ui_parameters` y lo incorpora a la configuración de Swagger UI; `python -m py_compile services/trackflow-api/main.py` finalizó correctamente.
+- Verificación pendiente: no se pudo ejecutar `TestClient` ni Lighthouse en este entorno. No están confirmados el comportamiento visual de la página, la disponibilidad funcional de las rutas tras el cambio ni una reducción de TBT. La causa raíz sigue siendo una hipótesis hasta revisar una traza y comparar mediciones equivalentes.
 
 ### Problema 2
 
@@ -48,22 +51,25 @@ Resultados transcritos de las seis capturas de `audit/before/`. Las etiquetas de
 - Indicador afectado: LCP móvil de 5.7 s (`/login`) y 5.6 s (`/suppliers`); Performance de 77 y 79. TBT (140 ms y 90 ms) y CLS (0) son comparativamente bajos.
 - Evidencia de Lighthouse: `frontend-mobile(metricals).png` y `frontend-mobile-internal(metricals).png` muestran FCP de 1.3 s y 1.0 s, pero LCP cercano a 5.6 s. Los reportes completos no incluyen en las capturas el elemento LCP ni la auditoría diagnóstica correspondiente.
 - Archivo o componente involucrado: `/login` se implementa en `uis/backoffice/src/app/login/page.tsx`; proveedores, en `uis/backoffice/src/app/suppliers/page.tsx`. La asignación de `/login` a backoffice se infiere del contenido de la captura y coincide con las rutas del repositorio. Ambas rutas son componentes cliente. La captura móvil de proveedores muestra datos cargados, pero no prueba que la solicitud de datos cause el LCP.
-- Causa raíz comprobada (o hipótesis a verificar): Hipótesis: existe demora entre el primer pintado y el elemento elegido como LCP, o la medición está afectada por el entorno/IndexedDB. No se puede atribuir a una imagen, solicitud o componente específico a partir de estas capturas.
-- Solución propuesta: repetir ambas rutas en incógnito y revisar el elemento LCP, su cadena de solicitudes y el desglose de renderizado en Lighthouse/Performance. Alinear la ruta desktop y mobile antes de comparar. Optimizar solo el recurso o renderizado que el perfil identifique.
+- Causa raíz comprobada (o hipótesis a verificar): Está comprobado en código que `AuthGuard` devolvía `null` mientras `loading` era verdadero incluso en rutas públicas, y que `/suppliers` iniciaba con `loading=false` y lista vacía antes de solicitar datos. La contribución exacta de esos comportamientos al LCP medido no está comprobada; el retardo de red y el elemento LCP requieren traza.
+- Solución propuesta: se aplicaron dos correcciones locales: renderizar rutas públicas durante la restauración de sesión y comenzar `/suppliers` en estado de carga. Se mantienen la protección de rutas privadas y el flujo de datos.
+- Verificación realizada: diagnóstico de VS Code sin errores en `AuthGuard.tsx` y `suppliers/page.tsx`; el chequeo de TypeScript del backoffice también pasó.
+- Verificación pendiente: repetir Lighthouse en las mismas rutas/viewport y revisar elemento LCP, waterfall y renderizado. No se afirma una mejora de LCP ni de CLS; las capturas existentes son previas y tienen limitaciones de trazabilidad/caché indicadas arriba.
 
 ## Código duplicado
 
 ### Caso 1
 
-- Archivos: `uis/backoffice/src/app/login/page.tsx`, `uis/backoffice/src/app/register/page.tsx`, `uis/backoffice/src/app/forgot-password/page.tsx` y `uis/backoffice/src/app/reset-password/page.tsx`.
+- Archivos: `uis/backoffice/src/app/login/page.tsx`, `uis/backoffice/src/app/register/page.tsx`, `uis/backoffice/src/app/forgot-password/page.tsx`, `uis/backoffice/src/app/reset-password/page.tsx` y `uis/backoffice/src/app/account/change-password/page.tsx`.
 - Código repetido: páginas de autenticación repiten la estructura `card authCard`, formularios `authForm`, estados/mensajes y enlaces de navegación; las clases visuales compartidas ya se encuentran en `uis/backoffice/src/app/globals.css`.
-- Abstracción propuesta: extraer un contenedor/presentación de formulario de autenticación y reutilizarlo, manteniendo en cada página su validación y lógica específica. Es una oportunidad de mantenimiento, no un problema de rendimiento demostrado por Lighthouse.
+- Abstracción aplicada: `uis/backoffice/src/components/auth/AuthCard.tsx` centraliza el marco `main`/`section`, título y descripción opcional. Las cinco páginas reutilizan el componente; validaciones, formularios, mensajes y solicitudes siguen en cada página. Es una mejora de mantenimiento, no una optimización Lighthouse demostrada.
+- Verificación realizada: diagnóstico de VS Code sin errores en el nuevo componente y las cinco páginas que lo usan; el chequeo de TypeScript del backoffice también pasó.
 
 ### Caso 2
 
 - Archivos: `uis/website/src/app/globals.css` y `uis/backoffice/src/app/globals.css`.
-- Código repetido: reglas base para `body` (tipografía, fondo y color), `.container`, `.navbar` y `.button` cubren necesidades visuales similares en ambas aplicaciones, aunque algunos valores y usos difieren.
-- Abstracción propuesta: si se mantiene una identidad visual compartida, mover únicamente reset, tokens y estilos realmente comunes a una hoja compartida; conservar las variantes de cada app para evitar acoplamiento visual innecesario.
+- Código coincidente verificado: `box-sizing` y parte de la base de `body` coinciden; `.container`, `.navbar` y `.button` tienen diferencias de márgenes, espaciado o presentación entre apps.
+- Recomendación: no extraer una hoja compartida por ahora. Mantener los estilos locales; reconsiderar tokens comunes solo si el producto define una identidad visual compartida y se confirma que los valores deben evolucionar juntos. No se aplicó una abstracción CSS.
 
 ## Siguiente medición
 

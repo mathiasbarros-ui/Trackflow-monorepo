@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
+import AuthCard from "@/components/auth/AuthCard";
+
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
@@ -30,9 +32,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="container">
-      <section className="card authCard">
-        <h1>Recuperar contraseña</h1>
+    <AuthCard title="Recuperar contraseña">
         {sent ? (
           <p className="success">Si esa direccion esta registrada, recibiras un enlace en breve.</p>
         ) : (
@@ -43,7 +43,6 @@ export default function ForgotPasswordPage() {
         )}
         {error ? <p className="error">{error}</p> : null}
         <p className="authFootnote"><Link href="/login">Volver al inicio de sesion</Link></p>
-      </section>
-    </main>
+    </AuthCard>
   );
 }

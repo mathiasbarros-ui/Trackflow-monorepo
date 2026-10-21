@@ -4,6 +4,8 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import AuthCard from "@/components/auth/AuthCard";
+
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -40,9 +42,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <main className="container">
-      <section className="card authCard">
-        <h1>Restablecer contraseña</h1>
+    <AuthCard title="Restablecer contraseña">
         {token ? <form className="authForm" onSubmit={handleSubmit}>
           <label>Nueva contraseña<input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
           <label>Confirmar contraseña<input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
@@ -50,7 +50,6 @@ export default function ResetPasswordPage() {
         </form> : <p className="error">El enlace no contiene un token valido.</p>}
         {error ? <p className="error">{error}</p> : null}
         <p className="authFootnote"><Link href="/forgot-password">Solicitar otro enlace</Link></p>
-      </section>
-    </main>
+    </AuthCard>
   );
 }
