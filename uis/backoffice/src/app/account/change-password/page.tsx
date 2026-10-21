@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
+import AuthCard from "@/components/auth/AuthCard";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function ChangePasswordPage() {
@@ -45,9 +46,7 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <main className="container">
-      <section className="card authCard">
-        <h1>Cambiar contraseña</h1>
+    <AuthCard title="Cambiar contraseña">
         <form className="authForm" onSubmit={handleSubmit}>
           <label>Contraseña actual<input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} required autoComplete="current-password" /></label>
           <label>Nueva contraseña<input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
@@ -57,7 +56,6 @@ export default function ChangePasswordPage() {
         {error ? <p className="error">{error}</p> : null}
         {success ? <p className="success">{success}</p> : null}
         <p className="authFootnote"><Link href="/account/profile">Volver al perfil</Link></p>
-      </section>
-    </main>
+    </AuthCard>
   );
 }

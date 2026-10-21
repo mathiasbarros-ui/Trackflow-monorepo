@@ -56,7 +56,7 @@ export default function SuppliersPage() {
   const [form, setForm] = useState<SupplierForm>(initialForm);
   const [rateDrafts, setRateDrafts] = useState<Record<number, string>>({});
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     void loadSuppliers();

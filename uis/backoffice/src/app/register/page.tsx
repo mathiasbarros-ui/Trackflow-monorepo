@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
+import AuthCard from "@/components/auth/AuthCard";
 import { useAuth } from "@/hooks/useAuth";
 
 type FieldErrors = {
@@ -68,11 +69,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="container">
-      <section className="card authCard">
-        <h1>Crear cuenta</h1>
-        <p>Completa tus datos para registrarte y acceder.</p>
-
+    <AuthCard title="Crear cuenta" description="Completa tus datos para registrarte y acceder.">
         <form className="authForm" onSubmit={handleSubmit}>
           <label>
             Email
@@ -124,7 +121,6 @@ export default function RegisterPage() {
         <p className="authFootnote">
           Ya tienes cuenta? <Link href="/login">Inicia sesion</Link>
         </p>
-      </section>
-    </main>
+    </AuthCard>
   );
 }
