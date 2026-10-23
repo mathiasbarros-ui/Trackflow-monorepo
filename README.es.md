@@ -55,6 +55,26 @@ ambos lockfiles con sus volumenes de dependencias.
 Para detener sin borrar datos: `docker compose down`.
 `docker compose down -v` elimina todos los volumenes, los datos y la clave JWT.
 
+### Inicio rapido: datos de ejemplo
+
+Con los servicios levantados mediante `docker compose up`, crea primero un
+usuario desde `http://localhost:8000/docs`, usando `POST /users`. Copia el valor
+de `user.id` en la respuesta y reemplaza `USER_UUID` en
+`services/trackflow-api/routers/seed.py` por ese UUID.
+
+Desde la raiz del repositorio, carga proveedores e inventario:
+
+```bash
+docker compose exec backend python -m app.suppliers.seed
+docker compose exec -w /workspace/services/trackflow-api backend python -m routers.seed
+```
+
+El seed de proveedores omite los proveedores que ya existen. El de inventario
+crea productos y movimientos, y omite esa carga si ya encuentra algun SKU.
+También genera una incidencia de ejemplo una sola vez, aunque el inventario ya
+estuviera cargado. Para incidencias historicas se necesita un CSV; el comando
+local esta en la seccion «Carga historica de incidencias».
+
 ## Desarrollo local
 
 Backend:

@@ -1,22 +1,75 @@
+from datetime import datetime, timezone
+import sys
+from pathlib import Path
+
 from sqlmodel import Session, SQLModel, select
+from tinydb import Query
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from app.auth.database import engine
+from app.incidents.database import get_incidents_table
+from app.incidents.rules import validate_incident_data
 from models import SKU, StockEntry, StockExit
 
 
-# 1) Creá primero un usuario desde POST /auth/register.
+# 1) Creá primero un usuario desde POST /users.
 # 2) Copiá el uuid que devuelve Swagger y pegalo acá.
 USER_UUID = "2a3d3fac-fa72-428a-8a78-a34eb8321009"
+DEMO_INCIDENT_KEY = "trackflow-demo-inventory-incident"
+incident_query = Query()
+
+
+def seed_demo_incident() -> bool:
+    db, incidents_table = get_incidents_table()
+
+    try:
+        existing = incidents_table.get(
+            incident_query.legacy_id == DEMO_INCIDENT_KEY
+        )
+        if existing:
+            return False
+
+        now = datetime.now(timezone.utc).isoformat()
+        incident_data = validate_incident_data(
+            title="Demora en el despacho de productos de ejemplo",
+            description=(
+                "El pedido de prueba no se despacho dentro del plazo esperado."
+            ),
+            category="pedidos",
+            status="open",
+            origin="internal",
+            branch="central",
+        )
+        existing_incidents = incidents_table.all()
+        incidents_table.insert({
+            "id": 1 if not existing_incidents else max(
+                incident["id"] for incident in existing_incidents
+            ) + 1,
+            **incident_data,
+            "reported_by_user_id": USER_UUID,
+            "legacy_id": DEMO_INCIDENT_KEY,
+            "created_at": now,
+            "updated_at": now,
+        })
+        return True
+    finally:
+        db.close()
 
 
 def seed():
     SQLModel.metadata.create_all(engine)
+    incident_inserted = seed_demo_incident()
+    incident_status = "cargada" if incident_inserted else "ya existente"
+    print(f"Incidencia de ejemplo {incident_status}.")
 
     with Session(engine) as db:
         existing = db.exec(select(SKU)).first()
 
         if existing:
-            print("Ya hay SKUs cargados. No se ejecutó el seed.")
+            print("Ya hay SKUs cargados. Se omitió el seed de inventario.")
             return
 
         skus = [
