@@ -86,7 +86,7 @@ jobs:
           else
             echo "dockerfile=infra/production/Dockerfile.frontend" >> "$GITHUB_OUTPUT"
           fi
-          if [[ "$GITHUB_REF" == refs/heads/main && "$GITHUB_EVENT_NAME" != pull_request ]]; then
+          if [[ "$APP" != backend && "$GITHUB_REF" == refs/heads/main && "$GITHUB_EVENT_NAME" != pull_request ]]; then
             if [[ ! "$BACKOFFICE_URL" =~ ^https://[a-zA-Z0-9.-]+$ ]]; then
               echo "::error::Set repository variable PRODUCTION_BACKOFFICE_URL to https://app.your-domain.com"
               exit 1
@@ -159,12 +159,17 @@ jobs:
       - name: Deploy exact commit
         if: steps.current.outputs.deploy == 'true'
         env:
-          HOST: ${{ secrets.DO_HOST }}
-          USER: ${{ secrets.DO_USER }}
+          HOST: ${{ secrets.VPS_HOST || secrets.DO_HOST }}
+          PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
+          USER: ${{ secrets.VPS_USER || secrets.DO_USER }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           [[ "$HOST" =~ ^[a-zA-Z0-9.-]+$ && "$USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          [[ "$PORT" =~ ^[0-9]{1,5}$ ]]
+          port_number=$((10#$PORT))
+          (( port_number >= 1 && port_number <= 65535 ))
+          printf '%s\n' 'Host *' "  Port $port_number" >> ~/.ssh/config
           target="$USER@$HOST"
           release="/opt/trackflow/releases/$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           # shellcheck disable=SC2029
@@ -178,8 +183,9 @@ jobs:
       - name: Remove temporary registry credentials
         if: always() && steps.current.outputs.deploy == 'true'
         env:
-          HOST: ${{ secrets.DO_HOST }}
-          USER: ${{ secrets.DO_USER }}
+          HOST: ${{ secrets.VPS_HOST || secrets.DO_HOST }}
+          PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
+          USER: ${{ secrets.VPS_USER || secrets.DO_USER }}
         run: |
           # shellcheck disable=SC2029
           if [[ "$HOST" =~ ^[a-zA-Z0-9.-]+$ && "$USER" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
