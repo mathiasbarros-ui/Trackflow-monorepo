@@ -187,11 +187,15 @@ jobs:
           PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
           USER: ${{ secrets.VPS_USER || secrets.DO_USER }}
         run: |
+          set -euo pipefail
+          [[ "$HOST" =~ ^[a-zA-Z0-9.-]+$ && "$USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          [[ "$PORT" =~ ^[0-9]{1,5}$ ]]
+          port_number=$((10#$PORT))
+          (( port_number >= 1 && port_number <= 65535 ))
+          printf '%s\n' 'Host *' "  Port $port_number" >> ~/.ssh/config
           # shellcheck disable=SC2029
-          if [[ "$HOST" =~ ^[a-zA-Z0-9.-]+$ && "$USER" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
-            ssh "$USER@$HOST" \
-              "rm -f '/opt/trackflow/releases/$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT/.docker/config.json'"
-          fi
+          ssh "$USER@$HOST" \
+            "rm -f '/opt/trackflow/releases/$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT/.docker/config.json'"
       - name: Publish deployment result
         if: always()
         env:
