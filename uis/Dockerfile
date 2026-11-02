@@ -1,6 +1,7 @@
 FROM node:24-alpine
 
 RUN apk add --no-cache bash tini
+RUN npm install --global npm@12.2.1 --no-audit --no-fund
 WORKDIR /workspace/uis
 
 COPY website/package.json website/package-lock.json ./website/
