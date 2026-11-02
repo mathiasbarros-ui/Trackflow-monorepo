@@ -16,8 +16,20 @@ services:
       - website_next:/workspace/uis/website/.next
       - backoffice_next:/workspace/uis/backoffice/.next
     depends_on:
+      qdrant:
+        condition: service_started
       backend:
         condition: service_healthy
+    networks:
+      - trackflow
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_storage:/qdrant/storage
     networks:
       - trackflow
 
@@ -26,6 +38,7 @@ services:
       context: ./services
       additional_contexts:
         shared_packages: ./packages
+        rag_data: ./data
     env_file:
       - path: ./.env.example
       - path: ./.env
@@ -34,6 +47,8 @@ services:
       - "${API_PORT:-8000}:${API_PORT:-8000}"
     volumes:
       - ./services:/workspace/services
+      - ./data:/workspace/data:ro
+      - ./docs:/workspace/docs:ro
       - ./packages:/workspace/packages:ro
       - backend_database:/workspace/services/trackflow-api/database
     healthcheck:
@@ -59,3 +74,4 @@ volumes:
   website_next:
   backoffice_next:
   backend_database:
+  qdrant_storage:

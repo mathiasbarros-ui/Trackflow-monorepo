@@ -1,0 +1,22 @@
+FROM node:24-alpine AS build
+ARG APP
+WORKDIR /app
+COPY uis/${APP}/package.json uis/${APP}/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY uis/${APP}/ ./
+ARG NEXT_PUBLIC_BACKOFFICE_URL
+ENV NEXT_PUBLIC_BACKOFFICE_URL=${NEXT_PUBLIC_BACKOFFICE_URL} \
+    BACKEND_API_URL=http://backend:8000 \
+    NEXT_TELEMETRY_DISABLED=1
+RUN npm run build -- --webpack
+RUN npm prune --omit=dev --no-audit --no-fund
+
+FROM node:24-alpine
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    BACKEND_API_URL=http://backend:8000
+WORKDIR /app
+COPY --from=build --chown=node:node /app ./
+USER node
+EXPOSE 3000
+CMD ["npm", "run", "start", "--", "--hostname", "0.0.0.0", "--port", "3000"]

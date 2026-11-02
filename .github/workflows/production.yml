@@ -1,0 +1,195 @@
+name: Validate and deploy production
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.22"
+          python-version: "3.12"
+      - run: uv sync --project services/trackflow-api --frozen --group dev
+      - name: Backend tests
+        env:
+          DATABASE_URL: sqlite:////tmp/trackflow-ci.db
+          JWT_SECRET: ci-only-not-a-production-secret
+        run: uv run --project services/trackflow-api --no-sync pytest services/trackflow-api/tests -q
+      - name: Deployment regression tests
+        run: bash infra/production/tests/deployment.sh
+      - name: Validate production Compose
+        env:
+          WEBSITE_DOMAIN: trackflow.example.com
+          BACKOFFICE_DOMAIN: app.trackflow.example.com
+          API_DOMAIN: api.trackflow.example.com
+          ACME_EMAIL: admin@example.com
+          JWT_SECRET: ci-only
+          QDRANT_API_KEY: ci-only
+          IMAGE_PREFIX: ghcr.io/example/trackflow
+          IMAGE_TAG: validation
+          TRACKFLOW_ENV_FILE: /dev/null
+        run: docker compose -f infra/production/compose.yaml config --quiet
+
+  frontend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [website, backoffice]
+    defaults:
+      run:
+        working-directory: uis/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: uis/${{ matrix.app }}/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npx tsc --noEmit
+      - run: npm run build -- --webpack
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+          BACKEND_API_URL: http://backend:8000
+
+  images:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        app: [backend, website, backoffice]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Image namespace and build configuration
+        id: config
+        env:
+          APP: ${{ matrix.app }}
+          REPOSITORY: ${{ github.repository }}
+          BACKOFFICE_URL: ${{ vars.PRODUCTION_BACKOFFICE_URL }}
+        run: |
+          echo "prefix=ghcr.io/${REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          if [[ "$APP" == backend ]]; then
+            echo "dockerfile=infra/production/Dockerfile.backend" >> "$GITHUB_OUTPUT"
+          else
+            echo "dockerfile=infra/production/Dockerfile.frontend" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ "$GITHUB_REF" == refs/heads/main && "$GITHUB_EVENT_NAME" != pull_request ]]; then
+            if [[ ! "$BACKOFFICE_URL" =~ ^https://[a-zA-Z0-9.-]+$ ]]; then
+              echo "::error::Set repository variable PRODUCTION_BACKOFFICE_URL to https://app.your-domain.com"
+              exit 1
+            fi
+          fi
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ steps.config.outputs.dockerfile }}
+          push: ${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+          tags: ${{ steps.config.outputs.prefix }}/${{ matrix.app }}:${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          build-args: |
+            APP=${{ matrix.app }}
+            NEXT_PUBLIC_BACKOFFICE_URL=${{ vars.PRODUCTION_BACKOFFICE_URL || 'https://app.example.com' }}
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+
+  deploy:
+    needs: images
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: trackflow-production-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Skip commits superseded on main
+        id: current
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          head="$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)"
+          if [[ "$head" == "$GITHUB_SHA" ]]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping superseded commit $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Prepare SSH and release
+        if: steps.current.outputs.deploy == 'true'
+        env:
+          SSH_KEY: ${{ secrets.DO_SSH_PRIVATE_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DO_SSH_KNOWN_HOSTS }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if [[ -z "$SSH_KEY" || -z "$KNOWN_HOSTS" ]]; then
+            echo "::error::Configure DO_SSH_PRIVATE_KEY and DO_SSH_KNOWN_HOSTS in production."
+            exit 1
+          fi
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          printf '%s\n' 'Host *' '  BatchMode yes' '  StrictHostKeyChecking yes' \
+            '  ConnectTimeout 15' '  ServerAliveInterval 15' \
+            '  ServerAliveCountMax 3' > ~/.ssh/config
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+          printf 'IMAGE_PREFIX=ghcr.io/%s\nIMAGE_TAG=%s\n' \
+            "${REPOSITORY,,}" "$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" > infra/production/release.env
+      - name: Deploy exact commit
+        if: steps.current.outputs.deploy == 'true'
+        env:
+          HOST: ${{ secrets.DO_HOST }}
+          USER: ${{ secrets.DO_USER }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ "$HOST" =~ ^[a-zA-Z0-9.-]+$ && "$USER" =~ ^[a-z_][a-z0-9_-]*$ ]]
+          target="$USER@$HOST"
+          release="/opt/trackflow/releases/$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          # shellcheck disable=SC2029
+          ssh "$target" "mkdir -p '$release'"
+          scp infra/production/{compose.yaml,Caddyfile,common.sh,deploy.sh,backup.sh,release.env} "$target:$release/"
+          # shellcheck disable=SC2029
+          printf '%s' "$GHCR_TOKEN" | ssh "$target" \
+            "docker --config '$release/.docker' login ghcr.io --username '$GITHUB_ACTOR' --password-stdin"
+          # shellcheck disable=SC2029
+          ssh "$target" "DOCKER_CONFIG='$release/.docker' bash '$release/deploy.sh'"
+      - name: Remove temporary registry credentials
+        if: always() && steps.current.outputs.deploy == 'true'
+        env:
+          HOST: ${{ secrets.DO_HOST }}
+          USER: ${{ secrets.DO_USER }}
+        run: |
+          # shellcheck disable=SC2029
+          if [[ "$HOST" =~ ^[a-zA-Z0-9.-]+$ && "$USER" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
+            ssh "$USER@$HOST" \
+              "rm -f '/opt/trackflow/releases/$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT/.docker/config.json'"
+          fi
+      - name: Publish deployment result
+        if: always()
+        env:
+          RESULT: ${{ job.status }}
+        run: |
+          printf '## Production deployment\n\nCommit: %s\n\nResult: **%s**\n' \
+            "$GITHUB_SHA" "$RESULT" >> "$GITHUB_STEP_SUMMARY"

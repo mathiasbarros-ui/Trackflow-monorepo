@@ -105,7 +105,16 @@ Abre:
 - API: `http://localhost:8000`
 - Swagger: `http://localhost:8000/docs`
 
-## Configuracion
+## Despliegue en DigitalOcean
+
+La [guia de produccion](./infra/production/README.es.md) describe el VPS con IP
+publica reservada, HTTPS, backups y despliegue automatico desde `main` mediante
+GitHub Actions. Usa imagenes y Compose independientes del entorno de desarrollo.
+Requiere configurar el servidor, los dominios y los secretos antes de activarlo.
+Para el paso posterior a crear el VPS, usar la
+[guia de claves y API keys](./infra/production/README.claves.es.md).
+
+## Configuracion de desarrollo
 
 Copia `services/trackflow-api/.env.example` a `services/trackflow-api/.env` y define al menos `JWT_SECRET`. Para recuperar contrasenas por email configura tambien `RESEND_API_KEY`, `EMAIL_FROM` y `FRONTEND_URL`.
 

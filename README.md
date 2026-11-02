@@ -85,6 +85,13 @@ Open:
 - API: `http://localhost:8000`
 - Swagger: `http://localhost:8000/docs`
 
+## DigitalOcean deployment
+
+The [production guide (Spanish)](./infra/production/README.es.md) covers a VPS
+with a reserved public IP, HTTPS, backups, and automatic deployments from `main`
+using GitHub Actions. Production images and Compose are separate from local
+development. Configure the server, domains, and secrets before enabling it.
+
 ## Configuration
 
 Copy `services/trackflow-api/.env.example` to `services/trackflow-api/.env` and set at least `JWT_SECRET`. To enable password recovery email, also configure `RESEND_API_KEY`, `EMAIL_FROM`, and `FRONTEND_URL`.

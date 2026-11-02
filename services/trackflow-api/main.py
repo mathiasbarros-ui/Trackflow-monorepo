@@ -22,6 +22,7 @@ from app.incidents.routes import router as incidents_router
 from app.suppliers.routes import router as suppliers_router
 import models
 from routers.inventory import router as inventory_router
+from routers.knowledge import router as knowledge_router
 
 
 try:
@@ -57,6 +58,7 @@ app.include_router(profiles_router)
 app.include_router(auth_router)
 app.include_router(incidents_router)
 app.include_router(suppliers_router)
+app.include_router(knowledge_router)
 
 
 LAST_ANALYSIS = None

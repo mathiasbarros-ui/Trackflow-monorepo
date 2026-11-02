@@ -8,5 +8,6 @@ RUN uv pip install --system --no-cache -r requirements.txt
 
 COPY . /workspace/services/
 COPY --from=shared_packages / /workspace/packages/
+COPY --from=rag_data /process /workspace/data/process/
 
 CMD ["python", "/workspace/services/start.py"]

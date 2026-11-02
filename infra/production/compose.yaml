@@ -1,0 +1,122 @@
+name: trackflow-production
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+x-app: &app
+  restart: unless-stopped
+  logging: *logging
+  init: true
+
+x-frontend: &frontend
+  <<: *app
+  environment:
+    BACKEND_API_URL: http://backend:8000
+  depends_on:
+    backend:
+      condition: service_healthy
+  healthcheck:
+    test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+    interval: 10s
+    timeout: 5s
+    retries: 12
+    start_period: 20s
+
+services:
+  proxy:
+    <<: *app
+    image: caddy:2.10.2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      WEBSITE_DOMAIN: ${WEBSITE_DOMAIN:?Set WEBSITE_DOMAIN}
+      BACKOFFICE_DOMAIN: ${BACKOFFICE_DOMAIN:?Set BACKOFFICE_DOMAIN}
+      API_DOMAIN: ${API_DOMAIN:?Set API_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL:?Set ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      website:
+        condition: service_healthy
+      backoffice:
+        condition: service_healthy
+
+  website:
+    <<: *frontend
+    image: ${IMAGE_PREFIX:?Set IMAGE_PREFIX}/website:${IMAGE_TAG:?Set IMAGE_TAG}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  backoffice:
+    <<: *frontend
+    image: ${IMAGE_PREFIX:?Set IMAGE_PREFIX}/backoffice:${IMAGE_TAG:?Set IMAGE_TAG}
+
+  backend:
+    <<: *app
+    image: ${IMAGE_PREFIX:?Set IMAGE_PREFIX}/backend:${IMAGE_TAG:?Set IMAGE_TAG}
+    env_file:
+      - ${TRACKFLOW_ENV_FILE:-/opt/trackflow/.env}
+    environment:
+      DATABASE_URL: sqlite:///./database/trackflow.db
+      JWT_SECRET: ${JWT_SECRET:?Set a persistent JWT_SECRET}
+      BACKEND_API_URL: http://backend:8000
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_API_KEY: ${QDRANT_API_KEY:?Set QDRANT_API_KEY}
+      FRONTEND_URL: https://${BACKOFFICE_DOMAIN}
+      CORS_ORIGINS: '["https://${WEBSITE_DOMAIN}","https://${BACKOFFICE_DOMAIN}"]'
+    volumes:
+      - backend_database:/workspace/services/trackflow-api/database
+    depends_on:
+      qdrant:
+        condition: service_started
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import os, httpx; httpx.get('http://127.0.0.1:8000/', timeout=3).raise_for_status(); httpx.get('http://qdrant:6333/healthz', headers={'api-key': os.environ['QDRANT_API_KEY']}, timeout=3).raise_for_status()"
+      interval: 10s
+      timeout: 8s
+      retries: 12
+      start_period: 20s
+
+  qdrant:
+    <<: *app
+    image: qdrant/qdrant:v1.20.0
+    environment:
+      QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:?Set QDRANT_API_KEY}
+      QDRANT__TELEMETRY_DISABLED: "true"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+  backup:
+    image: alpine:3.22.2
+    profiles: ["operations"]
+    network_mode: none
+    volumes:
+      - backend_database:/source/backend:ro
+      - qdrant_storage:/source/qdrant:ro
+      - ${BACKUP_DIR:-/opt/trackflow/backups}:/backups
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - 'umask 077; tar -czf "/backups/$${BACKUP_NAME}.partial" -C /source backend qdrant; mv "/backups/$${BACKUP_NAME}.partial" "/backups/$${BACKUP_NAME}"'
+
+volumes:
+  backend_database:
+    name: trackflow-production-backend
+  qdrant_storage:
+    name: trackflow-production-qdrant
+  caddy_data:
+    name: trackflow-production-caddy-data
+  caddy_config:
+    name: trackflow-production-caddy-config
