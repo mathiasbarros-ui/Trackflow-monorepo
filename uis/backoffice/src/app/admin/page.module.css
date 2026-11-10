@@ -1,0 +1,24 @@
+:global(html[data-theme="dark"]) :is(.filters input, .filters select, .controls select) { background: #202725; color: #e6ece8; border-color: #52615b; }
+:global(html[data-theme="dark"]) .table th { background: #2c3730; }
+:global(html[data-theme="dark"]) :is(.table th, .table td) { border-color: #44524b; }
+:global(html[data-theme="dark"]) .muted { color: #b4c1b9; }
+:global(html[data-theme="dark"]) .active { background: #203d2d; color: #a5e4bd; }
+:global(html[data-theme="dark"]) .inactive { background: #452624; color: #ffb6af; }
+.tabs { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; }
+.tabs button[aria-pressed="true"] { background: #185b39; color: white; }
+.filters { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; margin-block: 24px; }
+.filters label, .controls label { display: grid; gap: 6px; font-size: 13px; }
+.filters input, .filters select, .controls select { max-width: 100%; padding: 10px; border: 1px solid #ccd4ce; border-radius: 6px; font: inherit; background: white; }
+.tableWrap { max-width: 100%; overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+.table th, .table td { border-bottom: 1px solid #dde4de; padding: 14px 12px; vertical-align: top; }
+.table th { background: #edf2ee; white-space: nowrap; }
+.table td { overflow-wrap: anywhere; min-width: 120px; }
+.controls { display: grid; gap: 10px; min-width: 220px; }
+.controls .checkbox { display: flex; align-items: center; gap: 8px; }
+.checkbox input { width: auto; }
+.active, .inactive { display: inline-block; border-radius: 16px; padding: 4px 10px; white-space: nowrap; }
+.active { background: #dcefe1; color: #1d5e33; }.inactive { background: #fbe4e0; color: #8a3025; }
+.muted { color: #5b6860; font-size: 12px; }
+.pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: 24px; }
+@media (max-width: 700px) { .filters { align-items: stretch; }.filters label { width: 100%; } }

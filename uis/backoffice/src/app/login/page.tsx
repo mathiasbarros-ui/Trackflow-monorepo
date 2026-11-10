@@ -1,5 +1,7 @@
 "use client";
 
+import { usePreferences } from "@/hooks/usePreferences";
+
 import Link from "next/link";
 import { Suspense, FormEvent, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -16,6 +18,7 @@ export default function LoginPage() {
 }
 
 function LoginPageContent() {
+  const { t } = usePreferences();
   const { login } = useAuth();
   const searchParams = useSearchParams();
 
@@ -40,7 +43,7 @@ function LoginPageContent() {
       if (submitError instanceof Error) {
         setError(submitError.message);
       } else {
-        setError("No se pudo iniciar sesion");
+        setError("No se pudo iniciar sesión");
       }
     } finally {
       setLoading(false);
@@ -48,8 +51,8 @@ function LoginPageContent() {
   }
 
   return (
-    <AuthCard title="Iniciar sesion" description="Usa tu email y contraseña para entrar al backoffice.">
-        {resetSuccess ? <p className="success">Contraseña actualizada. Ya puedes iniciar sesion.</p> : null}
+    <AuthCard title={t("Iniciar sesión")} description={t("Usa tu email y contraseña para entrar al backoffice.")}>
+        {resetSuccess ? <p className="success">{t("Contraseña actualizada. Ya puedes iniciar sesión.")}</p> : null}
 
         <form className="authForm" onSubmit={handleSubmit}>
           <label>
@@ -63,9 +66,7 @@ function LoginPageContent() {
             />
           </label>
 
-          <label>
-            Contraseña
-            <input
+          <label>{t(" Contraseña ")}<input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -75,17 +76,16 @@ function LoginPageContent() {
           </label>
 
           <button type="submit" disabled={loading}>
-            {loading ? "Entrando..." : "Entrar"}
+            {loading ? t("Entrando...") : t("Entrar")}
           </button>
         </form>
 
-        {error ? <p className="error">{error}</p> : null}
+        {error ? <p className="error">{t(error)}</p> : null}
 
-        <p className="authFootnote">
-          No tienes cuenta? <Link href="/register">Registrate aqui</Link>
+        <p className="authFootnote">{t(" ¿No tienes cuenta? ")}<Link href="/register">{t("Regístrate aquí")}</Link>
         </p>
         <p className="authFootnote">
-          <Link href="/forgot-password">¿Olvidaste tu contraseña?</Link>
+          <Link href="/forgot-password">{t("¿Olvidaste tu contraseña?")}</Link>
         </p>
     </AuthCard>
   );

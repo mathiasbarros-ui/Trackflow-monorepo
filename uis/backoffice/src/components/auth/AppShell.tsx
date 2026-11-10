@@ -1,5 +1,7 @@
 "use client";
 
+import { usePreferences } from "@/hooks/usePreferences";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -8,8 +10,10 @@ import AuthGuard from "@/components/auth/AuthGuard";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function AppShell({ children }: { children: ReactNode }) {
+  const { t } = usePreferences();
   const pathname = usePathname();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
+  const isAdmin = isAuthenticated && ["admin", "superadmin"].includes(user?.role ?? "");
 
   const isAuthPage = pathname === "/login" || pathname === "/register";
 
@@ -22,20 +26,19 @@ export default function AppShell({ children }: { children: ReactNode }) {
           </Link>
 
           <div className="navLinks">
-            {isAuthenticated ? (
+            {isAdmin ? (
               <>
-                <Link href="/">Inicio</Link>
-                <Link href="/incidents">Incidencias</Link>
-                <Link href="/suppliers">Proveedores</Link>
+                <Link href="/">{t("Inicio")}</Link>
+                <Link href="/incidents">{t("Incidencias")}</Link>
+                <Link href="/suppliers">{t("Proveedores")}</Link>
                 {/* <Link href="/knowledge">Conocimiento</Link> */}
-                <Link href="/backoffice/inventory/products">Inventario</Link>
-                <Link href="/account/profile">Perfil</Link>
-                <button type="button" className="navButton" onClick={logout}>
-                  Cerrar sesion
-                </button>
+                <Link href="/backoffice/inventory/orders">{t("Movimientos")}</Link>
+                {user?.role === "superadmin" ? <Link href="/admin">{t("Usuarios y accesos")}</Link> : null}
+                <Link href="/account/profile">{t("Perfil")}</Link>
+                <button type="button" className="navButton" onClick={logout}>{t(" Cerrar sesión ")}</button>
               </>
             ) : (
-              !isAuthPage && <Link href="/login">Iniciar sesion</Link>
+              !isAuthPage && <Link href="/login">{t("Iniciar sesión")}</Link>
             )}
           </div>
         </div>

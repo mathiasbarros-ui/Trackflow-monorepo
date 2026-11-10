@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TrackFlow | Productos</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #1d2925;
+        --muted: #64736c;
+        --line: #d7e0da;
+        --surface: #ffffff;
+        --canvas: #f1f5f2;
+        --green: #27684f;
+        --green-dark: #1d523d;
+        --red: #9e382f;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--canvas);
+        color: var(--ink);
+        font-family: "Segoe UI", sans-serif;
+      }
+      button, input { font: inherit; }
+      .topbar {
+        display: flex;
+        min-height: 64px;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 max(24px, calc((100% - 1120px) / 2));
+        background: #19372c;
+        color: #fff;
+      }
+      .brand { font-size: 15px; font-weight: 800; letter-spacing: 1.5px; }
+      .topbar span:last-child { color: #c3d6cc; font-size: 13px; }
+      main { width: min(1120px, calc(100% - 40px)); margin: 36px auto 64px; }
+      h1 { margin: 0; font-size: 30px; line-height: 1.2; }
+      h2 { margin: 0 0 18px; font-size: 18px; }
+      p { color: var(--muted); line-height: 1.5; }
+      .intro { margin: 8px 0 24px; }
+      .panel {
+        margin-top: 20px;
+        padding: 22px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+      .login-panel { width: min(440px, 100%); margin: 72px auto; }
+      .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+      label { display: grid; gap: 7px; color: #34443c; font-size: 13px; font-weight: 700; }
+      input {
+        width: 100%;
+        min-height: 42px;
+        padding: 9px 11px;
+        border: 1px solid #b9c8bf;
+        border-radius: 5px;
+        background: #fff;
+        color: var(--ink);
+      }
+      input:focus-visible, button:focus-visible {
+        outline: 3px solid #b5d8c3;
+        outline-offset: 2px;
+      }
+      .form-actions, .toolbar, .row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+      .form-actions { margin-top: 18px; }
+      .toolbar { justify-content: space-between; gap: 16px; }
+      button {
+        min-height: 38px;
+        padding: 8px 12px;
+        border: 1px solid #b7c9be;
+        border-radius: 5px;
+        background: #fff;
+        color: #245b43;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button:hover { border-color: var(--green); background: #edf5f0; }
+      .primary { border-color: var(--green); background: var(--green); color: #fff; }
+      .primary:hover { border-color: var(--green-dark); background: var(--green-dark); }
+      .quiet { border-color: transparent; background: transparent; color: #e7f0eb; }
+      .danger { border-color: #e2bdb9; color: var(--red); }
+      .danger:hover { border-color: var(--red); background: #fff2f0; }
+      .notice { min-height: 22px; margin: 14px 0 0; font-size: 14px; }
+      .notice[data-error="true"] { color: var(--red); }
+      .table-wrap { overflow-x: auto; margin-top: 18px; border: 1px solid var(--line); border-radius: 6px; }
+      table { width: 100%; min-width: 760px; border-collapse: collapse; text-align: left; }
+      th, td { padding: 12px 14px; border-bottom: 1px solid #e6ece8; vertical-align: middle; }
+      th { background: #f3f6f4; color: #53625b; font-size: 12px; white-space: nowrap; }
+      td { font-size: 14px; }
+      tbody tr:last-child td { border-bottom: 0; }
+      .product-name { display: block; font-weight: 700; }
+      .product-code { display: block; margin-top: 3px; color: var(--muted); font-size: 12px; }
+      .empty { padding: 24px; color: var(--muted); text-align: center; }
+      [hidden] { display: none !important; }
+      @media (max-width: 640px) {
+        .topbar { padding: 0 20px; }
+        main { width: calc(100% - 28px); margin-top: 24px; }
+        .panel { padding: 17px; }
+        .form-grid { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <span class="brand">TRACKFLOW</span>
+      <span>Administración de inventario</span>
+    </header>
+
+    <main>
+      <section id="login-panel" class="panel login-panel">
+        <h1>Productos</h1>
+        <p>Iniciá sesión para administrar el catálogo.</p>
+        <form id="login-form">
+          <div class="form-grid">
+            <label>Correo electrónico
+              <input name="email" type="email" autocomplete="username" required />
+            </label>
+            <label>Contraseña
+              <input name="password" type="password" autocomplete="current-password" required />
+            </label>
+          </div>
+          <div class="form-actions">
+            <button class="primary" type="submit">Iniciar sesión</button>
+          </div>
+          <p id="login-notice" class="notice" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section id="dashboard" hidden>
+        <div class="toolbar">
+          <div>
+            <h1>Productos</h1>
+            <p class="intro">Creá productos, actualizá sus datos o dales de baja.</p>
+          </div>
+          <button id="logout" class="quiet" type="button">Cerrar sesión</button>
+        </div>
+
+        <section class="panel" aria-labelledby="form-title">
+          <h2 id="form-title">Añadir producto</h2>
+          <form id="product-form">
+            <div class="form-grid">
+              <label>Nombre del producto
+                <input name="name" maxlength="160" required />
+              </label>
+              <label>Código
+                <input name="sku" maxlength="80" required />
+              </label>
+              <label>Cliente
+                <input name="client_name" maxlength="160" required />
+              </label>
+              <label>Categoría
+                <input name="category" maxlength="120" required />
+              </label>
+              <label>Almacén
+                <input name="warehouse" maxlength="120" required />
+              </label>
+            </div>
+            <div class="form-actions">
+              <button id="save-product" class="primary" type="submit">Añadir producto</button>
+              <button id="cancel-edit" type="button" hidden>Cancelar edición</button>
+            </div>
+          </form>
+        </section>
+
+        <p id="notice" class="notice" role="status" aria-live="polite"></p>
+
+        <section class="panel" aria-labelledby="list-title">
+          <h2 id="list-title">Productos activos</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Producto</th>
+                  <th scope="col">Cliente</th>
+                  <th scope="col">Categoría</th>
+                  <th scope="col">Almacén</th>
+                  <th scope="col">Stock</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="products"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const tokenKey = "trackflow-admin-token";
+      let token = sessionStorage.getItem(tokenKey);
+      let editingId = null;
+
+      const loginPanel = document.querySelector("#login-panel");
+      const dashboard = document.querySelector("#dashboard");
+      const loginForm = document.querySelector("#login-form");
+      const loginNotice = document.querySelector("#login-notice");
+      const productForm = document.querySelector("#product-form");
+      const productsBody = document.querySelector("#products");
+      const notice = document.querySelector("#notice");
+      const formTitle = document.querySelector("#form-title");
+      const saveButton = document.querySelector("#save-product");
+      const cancelButton = document.querySelector("#cancel-edit");
+
+      function showLogin(message = "") {
+        loginPanel.hidden = false;
+        dashboard.hidden = true;
+        loginNotice.textContent = message;
+      }
+
+      function showDashboard() {
+        loginPanel.hidden = true;
+        dashboard.hidden = false;
+      }
+
+      function showNotice(message, isError = false) {
+        notice.textContent = message;
+        notice.dataset.error = String(isError);
+      }
+
+      async function request(path, options = {}) {
+        const headers = new Headers(options.headers || {});
+        headers.set("Authorization", `Bearer ${token}`);
+        if (options.body && !headers.has("Content-Type")) {
+          headers.set("Content-Type", "application/json");
+        }
+
+        const response = await fetch(path, { ...options, headers });
+        if (!response.ok) {
+          const body = await response.json().catch(() => null);
+          if (response.status === 401) {
+            token = null;
+            sessionStorage.removeItem(tokenKey);
+            showLogin("La sesión venció. Iniciá sesión nuevamente.");
+          }
+          throw new Error(body?.detail || `Error ${response.status}`);
+        }
+
+        return response.json();
+      }
+
+      function makeCell(value) {
+        const cell = document.createElement("td");
+        cell.textContent = value;
+        return cell;
+      }
+
+      function startEditing(product) {
+        editingId = product.id;
+        for (const field of ["name", "sku", "client_name", "category", "warehouse"]) {
+          productForm.elements[field].value = product[field];
+        }
+        formTitle.textContent = "Editar producto";
+        saveButton.textContent = "Guardar cambios";
+        cancelButton.hidden = false;
+        productForm.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function resetForm() {
+        editingId = null;
+        productForm.reset();
+        formTitle.textContent = "Añadir producto";
+        saveButton.textContent = "Añadir producto";
+        cancelButton.hidden = true;
+      }
+
+      function renderProducts(products) {
+        productsBody.replaceChildren();
+        if (products.length === 0) {
+          const row = document.createElement("tr");
+          const cell = document.createElement("td");
+          cell.className = "empty";
+          cell.colSpan = 6;
+          cell.textContent = "No hay productos activos.";
+          row.append(cell);
+          productsBody.append(row);
+          return;
+        }
+
+        for (const product of products) {
+          const row = document.createElement("tr");
+          const nameCell = document.createElement("td");
+          const name = document.createElement("span");
+          const code = document.createElement("span");
+          name.className = "product-name";
+          name.textContent = product.name;
+          code.className = "product-code";
+          code.textContent = `Código: ${product.sku}`;
+          nameCell.append(name, code);
+          row.append(nameCell);
+          row.append(makeCell(product.client_name));
+          row.append(makeCell(product.category));
+          row.append(makeCell(product.warehouse));
+          row.append(makeCell(`${product.current_stock} unidades`));
+
+          const actionsCell = document.createElement("td");
+          const actions = document.createElement("div");
+          actions.className = "row-actions";
+          const editButton = document.createElement("button");
+          editButton.type = "button";
+          editButton.textContent = "Editar";
+          editButton.addEventListener("click", () => startEditing(product));
+          const deactivateButton = document.createElement("button");
+          deactivateButton.type = "button";
+          deactivateButton.className = "danger";
+          deactivateButton.textContent = "Dar de baja";
+          deactivateButton.addEventListener("click", () => deactivateProduct(product));
+          actions.append(editButton, deactivateButton);
+          actionsCell.append(actions);
+          row.append(actionsCell);
+          productsBody.append(row);
+        }
+      }
+
+      async function loadProducts() {
+        const products = await request("/inventory/products");
+        renderProducts(products);
+      }
+
+      async function deactivateProduct(product) {
+        if (!window.confirm(`¿Dar de baja "${product.name}"? Se conservará su historial.`)) return;
+
+        try {
+          await request(`/inventory/products/${product.id}`, { method: "DELETE" });
+          if (editingId === product.id) resetForm();
+          await loadProducts();
+          showNotice("Producto dado de baja.");
+        } catch (error) {
+          showNotice(error.message, true);
+        }
+      }
+
+      loginForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        loginNotice.textContent = "";
+        const formData = new FormData(loginForm);
+        try {
+          const response = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: formData.get("email"),
+              password: formData.get("password"),
+            }),
+          });
+          const body = await response.json();
+          if (!response.ok) throw new Error(body.detail || "No se pudo iniciar sesión.");
+          token = body.access_token;
+          sessionStorage.setItem(tokenKey, token);
+          showDashboard();
+          await loadProducts();
+        } catch (error) {
+          showLogin(error.message);
+        }
+      });
+
+      productForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const wasEditing = editingId !== null;
+        const body = Object.fromEntries(new FormData(productForm));
+        const path = editingId === null
+          ? "/inventory/products"
+          : `/inventory/products/${editingId}`;
+
+        try {
+          await request(path, {
+            method: editingId === null ? "POST" : "PUT",
+            body: JSON.stringify(body),
+          });
+          resetForm();
+          await loadProducts();
+          showNotice(wasEditing ? "Cambios guardados." : "Producto añadido.");
+        } catch (error) {
+          showNotice(error.message, true);
+        }
+      });
+
+      cancelButton.addEventListener("click", resetForm);
+      document.querySelector("#logout").addEventListener("click", () => {
+        token = null;
+        sessionStorage.removeItem(tokenKey);
+        resetForm();
+        showLogin();
+      });
+
+      if (token) {
+        showDashboard();
+        loadProducts().catch((error) => showLogin(error.message));
+      } else {
+        showLogin();
+      }
+    </script>
+  </body>
+</html>

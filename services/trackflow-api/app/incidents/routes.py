@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query as ApiQuery, status
 from tinydb import Query
 
-from app.auth.routes import get_current_user
+from app.auth.routes import get_current_user, require_admin_user
 from app.incidents.database import get_incidents_table
 from app.incidents.models import (
     IncidentCreateRequest,
@@ -58,6 +58,13 @@ def create_incident(
     payload: IncidentCreateRequest,
     current_user: dict = Depends(get_current_user),
 ) -> IncidentResponse:
+    if current_user["role"] not in ("admin", "superadmin") and (
+        payload.status != "open" or payload.origin != "customer"
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Los reportes de usuarios deben tener origen customer y estado open.",
+        )
     try:
         clean_data = validate_incident_data(**payload.model_dump())
     except ValueError as error:
@@ -90,7 +97,7 @@ def list_incidents(
     origin: str | None = None,
     branch: str | None = None,
     category: str | None = None,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_admin_user),
 ) -> list[IncidentResponse]:
     db, incidents_table = get_incidents_table()
     try:
@@ -115,7 +122,7 @@ def list_incidents(
 
 @router.get("/summary", response_model=IncidentSummaryResponse)
 def incidents_summary(
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_admin_user),
 ) -> IncidentSummaryResponse:
     db, incidents_table = get_incidents_table()
     try:
@@ -146,7 +153,7 @@ def incidents_summary(
 @router.get("/{incident_id}", response_model=IncidentResponse)
 def get_incident(
     incident_id: int,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_admin_user),
 ) -> IncidentResponse:
     db, incidents_table = get_incidents_table()
     try:
@@ -163,7 +170,7 @@ def get_incident(
 def update_incident_status(
     incident_id: int,
     payload: IncidentStatusUpdateRequest,
-    current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(require_admin_user),
 ) -> IncidentResponse:
     db, incidents_table = get_incidents_table()
     try:

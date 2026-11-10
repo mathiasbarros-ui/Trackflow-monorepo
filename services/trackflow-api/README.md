@@ -50,7 +50,8 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 Las variables de Resend son opcionales durante el desarrollo. Sin
 `RESEND_API_KEY`, registro, login, perfil y cambio de contraseña funcionan,
-pero no se envia el correo de recuperacion.
+pero `POST /auth/forgot-password` responde con `503` porque no puede enviar el
+enlace de recuperacion.
 
 ## Iniciar el backend
 
@@ -123,6 +124,54 @@ Esta API ya soporta el flujo JWT para frontend React/Next.js:
 
 ## Autorizar Swagger con el access token
 
+### Panel exclusivo de superadmin
+
+El backoffice ofrece `/admin` (Usuarios y accesos). Solo `superadmin` puede
+listar cuentas con email, filtrar roles y estados, asignar o quitar `admin`
+y activar o desactivar cuentas. El rol `manager` existente se conserva.
+Un superadmin tambien tiene los permisos operativos de un administrador.
+
+Para asignar el primer superadmin, registra primero una cuenta activa y ejecuta
+desde la raiz del repositorio:
+
+```bash
+docker compose exec backend python promote_superadmin.py tu-email@ejemplo.com
+docker compose restart backend
+```
+
+Sin Docker: desde este servicio y con su entorno configurado, ejecuta
+`python promote_superadmin.py tu-email@ejemplo.com`. El comando no crea cuentas,
+no cambia contrasenas y rechaza cuentas inactivas. Reinicia la API para renovar
+las consultas en cache de TinyDB y luego vuelve a iniciar sesion.
+No se promovio ninguna cuenta automaticamente.
+
+Endpoints exclusivos:
+
+- `GET /admin/users`: filtros `search` (email), `role`, `is_active`, `offset`, `limit`.
+- `PATCH /admin/users/{id}`: acepta solo `role` (`user`, `manager`, `admin`)
+  e `is_active`. No permite crear, eliminar ni asignar `superadmin`.
+- `GET /admin/login-history`: filtros `search` (email), `succeeded`, `offset`, `limit`.
+
+Los listados usan paginas de 25 por defecto, con un maximo de 100 registros.
+Las cuentas superadmin no pueden ser eliminadas, desactivadas ni perder el rol
+desde la API; su asignacion queda reservada al servidor para evitar bloqueos.
+Tambien se exige superadmin para cambiar roles o estados con `PUT /users/{id}`:
+ni un usuario ni un administrador pueden usar esa ruta para evadir el panel.
+La desactivacion bloquea nuevos accesos y el uso de tokens existentes mientras
+la cuenta siga inactiva.
+
+El historial registra accesos exitosos y fallidos de `POST /auth/login` y
+`POST /auth/token` (Swagger), desde su habilitacion: email ingresado (hasta 320
+caracteres), identificador de cuenta si existe, resultado, origen y fecha UTC.
+Se guarda en la tabla SQL `loginattempt` de `DATABASE_URL`, creada al iniciar la
+API. No registra contrasenas, tokens ni conexiones en vivo; las solicitudes
+rechazadas por validacion antes de autenticarse no generan un intento.
+Si no puede persistir el intento, el login devuelve `503` en vez de conceder
+un acceso sin registro. Protege las copias de seguridad: contienen datos de
+cuentas e historial.
+
+### Uso del token
+
 1. Ejecuta `POST /auth/login` con el email y la contraseña.
 2. Copia solamente el valor de `access_token` de la respuesta.
 3. Pulsa **Authorize** en la parte superior de Swagger.
@@ -149,6 +198,13 @@ Las variables disponibles en `.env` son:
 | `FRONTEND_URL`         | URL incluida en enlaces de recuperacion | Para email |
 | `RESEND_API_KEY`       | Credencial de Resend                    | Para email |
 | `EMAIL_FROM`           | Remitente verificado en Resend          | Para email |
+
+`FRONTEND_URL` debe apuntar al backoffice accesible desde el navegador
+(por defecto `http://localhost:3001`). En Codespaces, el Compose de desarrollo
+pasa los datos del espacio al backend para convertir una URL local con puerto
+en su URL HTTPS reenviada. Una URL publica configurada explicitamente se conserva.
+Tras cambiar el entorno, recrea el backend y solicita un nuevo correo:
+los enlaces ya enviados no cambian.
 
 ## Payloads
 

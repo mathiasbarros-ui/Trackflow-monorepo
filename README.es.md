@@ -48,6 +48,44 @@ La conexion interna usa `BACKEND_API_URL=http://backend:8000` en la red
 entre contenedores. Si cambias los puertos o usas Codespaces, actualiza tambien
 esas URLs y `BACKEND_API_URL` en `.env`.
 
+En Codespaces, el arranque de las interfaces convierte automaticamente las URLs
+locales con puerto de `NEXT_PUBLIC_BACKOFFICE_URL` y `NEXT_PUBLIC_WEBSITE_URL`
+en sus direcciones HTTPS reenviadas. Las URLs publicas explicitas se conservan.
+Asi los enlaces de registro, inicio de sesion y regreso al sitio no apuntan al
+`localhost` del navegador.
+
+### Website y acceso de clientes
+
+El website (puerto 3000) incluye registro, inicio de sesion, perfil editable,
+cierre de sesion y el formulario `/incidents/new`. Los usuarios comunes quedan
+en el website; los administradores van al backoffice (puerto 3001). El login
+del backoffice tambien deriva a los usuarios comunes al website conservando
+su sesion. El traspaso entre sitios usa POST y una cookie temporal HttpOnly;
+el token no se incluye en el enlace.
+
+Las incidencias del website se guardan en la API con el usuario reportante,
+origen `customer` y estado `open`, y muestran su numero de referencia.
+La consulta global, el resumen y los cambios de estado siguen limitados a
+administradores. El perfil usa `/profiles/me` y cerrar sesion elimina el
+token del navegador del sitio actual.
+
+### Superadmin: usuarios y conexiones
+
+En el backoffice, `/admin` permite gestionar roles y estados de cuentas y ver
+intentos de inicio de sesion exitosos y fallidos. Solo accede el rol
+`superadmin`; `admin` conserva el acceso operativo, pero no puede gestionar
+roles ni estados. Para promover una cuenta activa existente:
+
+```bash
+docker compose exec backend python promote_superadmin.py tu-email@ejemplo.com
+docker compose restart backend
+```
+
+Vuelve a iniciar sesion: aparecera **Usuarios y accesos**. No se asigna
+superadmin automaticamente. El historial empieza al habilitar la funcion;
+no representa conexiones en vivo ni contiene contrasenas o tokens.
+Consulta el [contrato y las protecciones](services/trackflow-api/README.md#panel-exclusivo-de-superadmin).
+
 Para aplicar cambios de entorno: `docker compose up --force-recreate`.
 Para reconstruir tras cambiar dependencias: `docker compose up --build`.
 El script de interfaces ejecuta `npm ci` en cada arranque para sincronizar
@@ -71,6 +109,16 @@ docker compose exec -w /workspace/services/trackflow-api backend python -m route
 
 El seed de proveedores omite los proveedores que ya existen. El de inventario
 crea productos y movimientos, y omite esa carga si ya encuentra algun SKU.
+
+Las cuentas nuevas se registran como usuarios y no pueden entrar al backoffice.
+Para habilitar el primer administrador, desde un entorno confiable ejecuta:
+
+```bash
+docker compose exec backend python /workspace/services/trackflow-api/promote_admin.py admin@example.com
+```
+
+El usuario indicado debe haberse registrado previamente. Los admins pueden
+asignar o quitar roles desde la API de usuarios.
 También genera una incidencia de ejemplo una sola vez, aunque el inventario ya
 estuviera cargado. Para incidencias historicas se necesita un CSV; el comando
 local esta en la seccion «Carga historica de incidencias».

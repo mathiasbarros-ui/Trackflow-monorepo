@@ -9,6 +9,7 @@ import AppShell from "@/components/auth/AppShell";
 import Providers from "@/app/providers";
 
 import "./globals.css";
+import "../../../shared/preferences.css";
 
 
 export const metadata: Metadata = {

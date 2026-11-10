@@ -2,11 +2,15 @@ import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.auth.routes import get_current_user
+from app.auth.routes import get_current_user, require_admin_user
 from data.process import rag
 
 
-router = APIRouter(prefix="/api/knowledge", tags=["knowledge"])
+router = APIRouter(
+    prefix="/api/knowledge",
+    tags=["knowledge"],
+    dependencies=[Depends(require_admin_user)],
+)
 
 
 class KnowledgeQueryRequest(BaseModel):

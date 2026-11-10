@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from passlib.hash import bcrypt
 from pydantic import BaseModel, Field
 
-from app.auth.routes import create_access_token, get_current_user
+from app.auth.routes import create_access_token, get_current_user, require_admin_user
 from app.auth.schemas import (
     MessageResponse,
     RegistrationResponse,
@@ -32,6 +32,7 @@ router = APIRouter(
 
 
 class Role(str, Enum):
+    superadmin = "superadmin"
     admin = "admin"
     manager = "manager"
     user = "user"
@@ -68,11 +69,28 @@ def owner_or_admin(
 ):
     if (
         current_user["id"] != user_id
-        and current_user["role"] != "admin"
+        and current_user["role"] not in ("admin", "superadmin")
     ):
         raise HTTPException(
             status_code=403,
             detail="No tenés permiso"
+        )
+
+
+def validate_access_changes(user: dict, changes: dict, current_user: dict) -> None:
+    if user.get("role") == "superadmin" and user["id"] != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Esta cuenta de superadmin está protegida")
+    if "role" not in changes and "is_active" not in changes:
+        return
+    if current_user["role"] != "superadmin":
+        raise HTTPException(
+            status_code=403,
+            detail="Solo un superadmin puede cambiar roles o activar y desactivar cuentas",
+        )
+    if user.get("role") == "superadmin" or changes.get("role") == "superadmin":
+        raise HTTPException(
+            status_code=403,
+            detail="Las cuentas superadmin se gestionan únicamente desde el servidor",
         )
 
 
@@ -126,7 +144,7 @@ def register(data: UserCreate):
 
 @router.get("", response_model=list[UserListResponse])
 def list_users(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(require_admin_user)
 ):
     return [
         {
@@ -174,6 +192,10 @@ def edit_user(
     changes = data.model_dump(
         exclude_none=True
     )
+    user = get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    validate_access_changes(user, changes, current_user)
 
     if "email" in changes:
         existing_user = get_user_by_email(
@@ -196,12 +218,6 @@ def edit_user(
 
     if "role" in changes:
 
-        if current_user["role"] != "admin":
-            raise HTTPException(
-                status_code=403,
-                detail="Solo un admin puede cambiar roles"
-            )
-
         changes["role"] = changes["role"].value
 
     user = update_user(
@@ -222,11 +238,14 @@ def remove_user(
         current_user
     )
 
-    if not get_user_by_id(user_id):
+    user = get_user_by_id(user_id)
+    if not user:
         raise HTTPException(
             status_code=404,
             detail="Usuario no encontrado"
         )
+    if user.get("role") == "superadmin":
+        raise HTTPException(status_code=403, detail="No se puede eliminar una cuenta superadmin")
 
     delete_user(user_id)
 

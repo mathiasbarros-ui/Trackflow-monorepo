@@ -6,6 +6,9 @@ services:
       - path: ./.env.example
       - path: ./.env
         required: false
+    environment:
+      CODESPACE_NAME: ${CODESPACE_NAME:-}
+      GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN: ${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-}
     ports:
       - "${WEBSITE_PORT:-3000}:${WEBSITE_PORT:-3000}"
       - "${BACKOFFICE_PORT:-3001}:${BACKOFFICE_PORT:-3001}"
@@ -43,6 +46,9 @@ services:
       - path: ./.env.example
       - path: ./.env
         required: false
+    environment:
+      CODESPACE_NAME: ${CODESPACE_NAME:-}
+      GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN: ${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN:-}
     ports:
       - "${API_PORT:-8000}:${API_PORT:-8000}"
     volumes:

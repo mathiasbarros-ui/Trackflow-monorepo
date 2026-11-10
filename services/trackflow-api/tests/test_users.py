@@ -7,10 +7,14 @@ def test_register_camino_exitoso(client, monkeypatch):
     monkeypatch.setattr(users.bcrypt, "hash", lambda password: "hash")
     monkeypatch.setattr(users, "create_access_token", lambda user_id: "token")
 
-    response = client.post("/users", json={"email": "new@example.com", "password": "12345678"})
+    response = client.post(
+        "/users",
+        json={"email": "new@example.com", "password": "12345678", "role": "admin"},
+    )
 
     assert response.status_code == 200
     assert response.json()["access_token"] == "token"
+    assert response.json()["user"]["role"] == "user"
     assert "email" not in response.json()["user"]
     assert "hashed_password" not in response.text
 
@@ -34,11 +38,11 @@ def test_register_modo_fallo_email_duplicado(client, monkeypatch):
     assert response.status_code == 400
 
 
-def test_list_camino_exitoso(auth_client, monkeypatch):
+def test_list_camino_exitoso(admin_client, monkeypatch):
     user = {"id": "1", "email": "a@example.com", "is_active": True, "role": "user", "created_at": "now"}
     monkeypatch.setattr(users, "get_all_users", lambda: [user])
 
-    response = auth_client.get("/users")
+    response = admin_client.get("/users")
 
     assert response.status_code == 200
     assert response.json() == [{
@@ -49,10 +53,10 @@ def test_list_camino_exitoso(auth_client, monkeypatch):
     }]
 
 
-def test_list_caso_limite_vacia(auth_client, monkeypatch):
+def test_list_caso_limite_vacia(admin_client, monkeypatch):
     monkeypatch.setattr(users, "get_all_users", lambda: [])
 
-    response = auth_client.get("/users")
+    response = admin_client.get("/users")
 
     assert response.status_code == 200
     assert response.json() == []
@@ -62,6 +66,12 @@ def test_list_modo_fallo_sin_autenticacion(client):
     response = client.get("/users")
 
     assert response.status_code == 401
+
+
+def test_list_modo_fallo_usuario_no_admin(auth_client):
+    response = auth_client.get("/users")
+
+    assert response.status_code == 403
 
 
 def test_get_camino_exitoso(auth_client, current_user, monkeypatch):
@@ -87,11 +97,11 @@ def test_get_modo_fallo_sin_permiso(auth_client):
     assert response.status_code == 403
 
 
-def test_put_camino_exitoso(auth_client, current_user, monkeypatch):
+def test_put_camino_exitoso(superadmin_client, current_user, monkeypatch):
     monkeypatch.setattr(users, "get_user_by_id", lambda user_id: current_user)
     monkeypatch.setattr(users, "update_user", lambda user_id, data: current_user | data)
 
-    response = auth_client.put("/users/user-1", json={"is_active": False})
+    response = superadmin_client.put("/users/user-1", json={"is_active": False})
 
     assert response.status_code == 200
     assert response.json()["is_active"] is False

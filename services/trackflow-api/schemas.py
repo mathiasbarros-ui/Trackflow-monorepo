@@ -21,6 +21,7 @@ class SKUResponse(BaseModel):
     category: str
     warehouse: str
     current_stock: int
+    is_active: bool
 
 
 class StockEntryCreate(BaseModel):

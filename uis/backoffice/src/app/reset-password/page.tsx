@@ -1,5 +1,7 @@
 "use client";
 
+import { usePreferences } from "@/hooks/usePreferences";
+
 import Link from "next/link";
 import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -15,6 +17,7 @@ export default function ResetPasswordPage() {
 }
 
 function ResetPasswordPageContent() {
+  const { t } = usePreferences();
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
@@ -39,7 +42,7 @@ function ResetPasswordPageContent() {
       });
       if (!response.ok) {
         const data = (await response.json().catch(() => null)) as { detail?: string } | null;
-        throw new Error(data?.detail ?? "Token invalido o expirado.");
+        throw new Error(data?.detail ?? "Token inválido o expirado.");
       }
       router.push("/login?reset=success");
     } catch (requestError) {
@@ -50,14 +53,14 @@ function ResetPasswordPageContent() {
   }
 
   return (
-    <AuthCard title="Restablecer contraseña">
+    <AuthCard title={t("Restablecer contraseña")}>
         {token ? <form className="authForm" onSubmit={handleSubmit}>
-          <label>Nueva contraseña<input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
-          <label>Confirmar contraseña<input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
-          <button type="submit" disabled={loading}>{loading ? "Guardando..." : "Cambiar contraseña"}</button>
-        </form> : <p className="error">El enlace no contiene un token valido.</p>}
-        {error ? <p className="error">{error}</p> : null}
-        <p className="authFootnote"><Link href="/forgot-password">Solicitar otro enlace</Link></p>
+          <label>{t("Nueva contraseña")}<input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
+          <label>{t("Confirmar contraseña")}<input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} minLength={8} required autoComplete="new-password" /></label>
+          <button type="submit" disabled={loading}>{loading ? t("Guardando...") : t("Cambiar contraseña")}</button>
+        </form> : <p className="error">{t("El enlace no contiene un token válido.")}</p>}
+        {error ? <p className="error">{t(error)}</p> : null}
+        <p className="authFootnote"><Link href="/forgot-password">{t("Solicitar otro enlace")}</Link></p>
     </AuthCard>
   );
 }

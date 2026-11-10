@@ -1,3 +1,18 @@
+:root[data-theme="dark"] body { background: #151918; color: #e6ece8; }
+:root[data-theme="dark"] .card,
+:root[data-theme="dark"] .metric,
+:root[data-theme="dark"] .knowledgeForm,
+:root[data-theme="dark"] .knowledgeAnswer { background: #202725; border-color: #44524b; }
+:root[data-theme="dark"] :is(input, select, textarea) { background: #171d1a; color: #e6ece8; border-color: #52615b; }
+:root[data-theme="dark"] :is(input, textarea)::placeholder { color: #a7b4ac; }
+:root[data-theme="dark"] :is(.hero p, .pageHeader p, .eyebrow, .authFootnote, .fileArea small, .metric span, .satisfactionGrid span, .incidentMeta, .supplierMeta, .incidentRow p, .knowledgeFormFooter) { color: #b4c1b9; }
+:root[data-theme="dark"] :is(.incidentRow, .supplierRow, .dataList li) { border-color: #44524b; }
+:root[data-theme="dark"] .satisfactionGrid div { background: #29322d; }
+:root[data-theme="dark"] :is(.error, .isSuspended) { background: #452624; color: #ffb6af; }
+:root[data-theme="dark"] :is(.success, .isActive) { background: #203d2d; color: #a5e4bd; }
+:root[data-theme="dark"] :is(.fieldError, .knowledgeError) { color: #ffb6af; }
+:root[data-theme="dark"] :focus-visible { outline: 3px solid #83b3ff; outline-offset: 3px; }
+
 * {
   box-sizing: border-box;
 }
@@ -53,9 +68,12 @@ input {
       92%
     );
 
-  height:
+  min-height:
     68px;
 
+  padding: 12px 0;
+  flex-wrap: wrap;
+  gap: 14px;
   margin:
     auto;
 
@@ -82,6 +100,9 @@ input {
 .navLinks {
   display:
     flex;
+
+  flex-wrap: wrap;
+  align-items: center;
 
   gap:
     24px;
@@ -284,6 +305,25 @@ button {
     pointer;
 }
 
+.navLinks a,
+.navLinks .navButton {
+  padding: 8px 12px;
+  border: 1px solid #454c54;
+  border-radius: 8px;
+  background: #2b3138;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0.85;
+  cursor: pointer;
+}
+
+.navLinks a:hover,
+.navLinks .navButton:hover {
+  border-color: #59636f;
+  background: #343b44;
+  opacity: 1;
+}
 
 .button {
   margin-top:

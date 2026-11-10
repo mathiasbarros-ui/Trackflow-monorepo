@@ -1,5 +1,7 @@
 "use client";
 
+import { usePreferences } from "@/hooks/usePreferences";
+
 import { FormEvent, useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -69,7 +71,7 @@ const CATEGORY_LABELS: Record<IncidentCategory, string> = {
   pagos: "Pagos",
   sistema: "Sistema",
   pedidos: "Pedidos",
-  atencion_cliente: "Atencion al cliente",
+  atencion_cliente: "Atención al cliente",
   infraestructura: "Infraestructura",
 };
 
@@ -96,6 +98,7 @@ const initialForm: IncidentForm = {
 
 
 export default function IncidentsPage() {
+  const { t } = usePreferences();
   const { authFetch } = useAuth();
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [summary, setSummary] = useState<IncidentSummary | null>(null);
@@ -213,8 +216,8 @@ export default function IncidentsPage() {
   return (
     <main className="container">
       <section className="pageHeader">
-        <h1>Gestor de incidencias</h1>
-        <p>Registra, filtra y actualiza incidencias operativas por origen, sucursal y categoria.</p>
+        <h1>{t("Gestor de incidencias")}</h1>
+        <p>{t("Registra, filtra y actualiza incidencias operativas por origen, sucursal y categoría.")}</p>
       </section>
 
       {summary ? (
@@ -224,33 +227,33 @@ export default function IncidentsPage() {
             <strong>{summary.total}</strong>
           </div>
           <div className="metric">
-            <span>Abiertas</span>
+            <span>{t("Abiertas")}</span>
             <strong>{summary.by_status.open ?? 0}</strong>
           </div>
           <div className="metric">
-            <span>En curso</span>
+            <span>{t("En curso")}</span>
             <strong>{summary.by_status.in_progress ?? 0}</strong>
           </div>
           <div className="metric">
-            <span>Resueltas</span>
+            <span>{t("Resueltas")}</span>
             <strong>{summary.by_status.resolved ?? 0}</strong>
           </div>
         </section>
       ) : null}
 
       <section className="card">
-        <h2>Nueva incidencia</h2>
+        <h2>{t("Nueva incidencia")}</h2>
         <form className="incidentForm" onSubmit={handleCreateIncident}>
           <input
             type="text"
-            placeholder="Titulo"
+            placeholder={t("Título")}
             value={form.title}
             onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
             required
           />
 
           <textarea
-            placeholder="Descripcion"
+            placeholder={t("Descripción")}
             value={form.description}
             onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
             required
@@ -262,7 +265,7 @@ export default function IncidentsPage() {
           >
             {CATEGORY_OPTIONS.map((category) => (
               <option key={category} value={category}>
-                {CATEGORY_LABELS[category]}
+                {t(CATEGORY_LABELS[category])}
               </option>
             ))}
           </select>
@@ -273,7 +276,7 @@ export default function IncidentsPage() {
           >
             {ORIGIN_OPTIONS.map((origin) => (
               <option key={origin} value={origin}>
-                {ORIGIN_LABELS[origin]}
+                {t(ORIGIN_LABELS[origin])}
               </option>
             ))}
           </select>
@@ -284,64 +287,64 @@ export default function IncidentsPage() {
           >
             {BRANCH_OPTIONS.map((branch) => (
               <option key={branch} value={branch}>
-                {BRANCH_LABELS[branch]}
+                {t(BRANCH_LABELS[branch])}
               </option>
             ))}
           </select>
 
-          <button type="submit">Crear incidencia</button>
+          <button type="submit">{t("Crear incidencia")}</button>
         </form>
       </section>
 
       <section className="card">
-        <h2>Filtros</h2>
+        <h2>{t("Filtros")}</h2>
         <div className="incidentFilters">
           <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as "" | IncidentStatus)}>
-            <option value="">Todos los estados</option>
+            <option value="">{t("Todos los estados")}</option>
             {STATUS_OPTIONS.map((incidentStatus) => (
               <option key={incidentStatus} value={incidentStatus}>
-                {STATUS_LABELS[incidentStatus]}
+                {t(STATUS_LABELS[incidentStatus])}
               </option>
             ))}
           </select>
 
           <select value={originFilter} onChange={(event) => setOriginFilter(event.target.value as "" | IncidentOrigin)}>
-            <option value="">Todos los origenes</option>
+            <option value="">{t("Todos los orígenes")}</option>
             {ORIGIN_OPTIONS.map((origin) => (
               <option key={origin} value={origin}>
-                {ORIGIN_LABELS[origin]}
+                {t(ORIGIN_LABELS[origin])}
               </option>
             ))}
           </select>
 
           <select value={branchFilter} onChange={(event) => setBranchFilter(event.target.value as "" | IncidentBranch)}>
-            <option value="">Todas las sucursales</option>
+            <option value="">{t("Todas las sucursales")}</option>
             {BRANCH_OPTIONS.map((branch) => (
               <option key={branch} value={branch}>
-                {BRANCH_LABELS[branch]}
+                {t(BRANCH_LABELS[branch])}
               </option>
             ))}
           </select>
 
           <select value={categoryFilter} onChange={(event) => setCategoryFilter(event.target.value as "" | IncidentCategory)}>
-            <option value="">Todas las categorias</option>
+            <option value="">{t("Todas las categorías")}</option>
             {CATEGORY_OPTIONS.map((category) => (
               <option key={category} value={category}>
-                {CATEGORY_LABELS[category]}
+                {t(CATEGORY_LABELS[category])}
               </option>
             ))}
           </select>
         </div>
       </section>
 
-      {error ? <p className="error">{error}</p> : null}
+      {error ? <p className="error">{t(error)}</p> : null}
 
       <section className="card">
-        <h2>Listado</h2>
+        <h2>{t("Listado")}</h2>
         {loading ? (
-          <p>Cargando...</p>
+          <p>{t("Cargando...")}</p>
         ) : incidents.length === 0 ? (
-          <p>No hay incidencias.</p>
+          <p>{t("No hay incidencias.")}</p>
         ) : (
           <ul className="incidentList">
             {incidents.map((incident) => (
@@ -350,17 +353,16 @@ export default function IncidentsPage() {
                   <strong>{incident.title}</strong>
                   <p>{incident.description}</p>
                   <div className="incidentMeta">
-                    {BRANCH_LABELS[incident.branch]} · {ORIGIN_LABELS[incident.origin]} · {CATEGORY_LABELS[incident.category]}
+                    {t(BRANCH_LABELS[incident.branch])} · {t(ORIGIN_LABELS[incident.origin])} · {t(CATEGORY_LABELS[incident.category])}
                   </div>
                   <span className={`statusBadge incidentStatus-${incident.status}`}>
-                    {STATUS_LABELS[incident.status]}
+                    {t(STATUS_LABELS[incident.status])}
                   </span>
                 </div>
 
                 <div className="incidentActions">
                   {(NEXT_STATUS[incident.status] ?? []).map((nextStatus) => (
-                    <button key={nextStatus} type="button" onClick={() => void updateIncidentStatus(incident.id, nextStatus)}>
-                      Pasar a {STATUS_LABELS[nextStatus].toLowerCase()}
+                    <button key={nextStatus} type="button" onClick={() => void updateIncidentStatus(incident.id, nextStatus)}>{t(" Pasar a ")}{t(STATUS_LABELS[nextStatus]).toLowerCase()}
                     </button>
                   ))}
                 </div>

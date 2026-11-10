@@ -1,3 +1,15 @@
+:global(html[data-theme="dark"]) .page { color: #e6ece8; }
+:global(html[data-theme="dark"]) :is(.title, .table td, .field, .stateTitle) { color: #e6ece8; }
+:global(html[data-theme="dark"]) :is(.description, .secondaryCell, .fieldHint, .requiredNote, .state, .navLink) { color: #b4c1b9; }
+:global(html[data-theme="dark"]) :is(.tableWrap, .form, .actionLink, .button, .field input, .field select) { background: #202725; color: #e6ece8; border-color: #52615b; }
+:global(html[data-theme="dark"]) :is(.table th, .table tbody tr:hover, .field input:disabled, .stockPanel) { background: #2c3730; color: #d3e2d9; }
+:global(html[data-theme="dark"]) :is(.table th, .table td, .nav, .state) { border-color: #44524b; }
+:global(html[data-theme="dark"]) :is(.eyebrow, .navLinkActive, .stockValue) { color: #9cdbb5; }
+:global(html[data-theme="dark"]) .buttonPrimary { background: #27684f; color: #fff; }
+:global(html[data-theme="dark"]) :is(.error, .low) { background: #452624; color: #ffb6af; border-color: #80504a; }
+:global(html[data-theme="dark"]) :is(.success, .healthy) { background: #203d2d; color: #a5e4bd; border-color: #467f59; }
+:global(html[data-theme="dark"]) :is(.warning, .inlineWarning) { background: #403723; color: #f2d394; border-color: #827044; }
+
 .page {
   width: min(1240px, 100%);
   margin: 0 auto;

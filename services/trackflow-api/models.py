@@ -11,6 +11,7 @@ class SKU(SQLModel, table=True):
     client_name: str
     category: str
     warehouse: str
+    is_active: bool = Field(default=True)
 
     entries: list["StockEntry"] = Relationship(back_populates="product")
     exits: list["StockExit"] = Relationship(back_populates="product")
@@ -22,7 +23,8 @@ class StockEntry(SQLModel, table=True):
     quantity: int
     reference: str
     warehouse: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc))
     user_uuid: str
 
     product: Optional[SKU] = Relationship(back_populates="entries")
@@ -35,7 +37,8 @@ class StockExit(SQLModel, table=True):
     exit_type: str
     tracking_number: Optional[str] = None
     warehouse: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc))
     user_uuid: str
 
     product: Optional[SKU] = Relationship(back_populates="exits")

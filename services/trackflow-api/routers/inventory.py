@@ -14,9 +14,14 @@ from schemas import (
 )
 
 # Ajustá solamente este import a la ubicación REAL de tu auth existente.
-from app.auth.routes import get_current_user
+from app.auth.routes import get_current_user, require_admin_user
 
-router = APIRouter(prefix="/inventory", tags=["inventory"])
+router = APIRouter(
+    prefix="/inventory",
+    tags=["inventory"],
+    dependencies=[Depends(require_admin_user)],
+)
+
 
 def calculate_stock(
     db: Session,
@@ -45,7 +50,7 @@ def calculate_stock(
 
 @router.get("/products", response_model=list[SKUResponse])
 def get_products(db: Session = Depends(get_db)):
-    products = db.exec(select(SKU)).all()
+    products = db.exec(select(SKU).where(SKU.is_active.is_(True))).all()
 
     response = []
 
@@ -65,6 +70,7 @@ def get_products(db: Session = Depends(get_db)):
                 category=product.category,
                 warehouse=product.warehouse,
                 current_stock=current_stock,
+                is_active=product.is_active,
             )
         )
 
@@ -77,6 +83,13 @@ def create_product(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
+    existing_product = db.exec(
+        select(SKU).where(SKU.sku == payload.sku)
+    ).first()
+    if existing_product:
+        raise HTTPException(
+            status_code=409, detail="Product code already exists")
+
     product = SKU(**payload.model_dump())
 
     db.add(product)
@@ -87,6 +100,7 @@ def create_product(
         id=product.id,
         **payload.model_dump(),
         current_stock=0,
+        is_active=product.is_active,
     )
 
 
@@ -94,23 +108,90 @@ def create_product(
 def get_product(product_id: int, db: Session = Depends(get_db)):
     product = db.get(SKU, product_id)
 
-    if not product:
+    if not product or not product.is_active:
         raise HTTPException(status_code=404, detail="Product not found")
 
     current_stock = calculate_stock(
         db,
         product.id,
-            product.warehouse,
+        product.warehouse,
     )
 
     return SKUResponse(
         id=product.id,
         name=product.name,
         sku=product.sku,
-                client_name=product.client_name,
-                category=product.category,
-                warehouse=product.warehouse,
+        client_name=product.client_name,
+        category=product.category,
+        warehouse=product.warehouse,
         current_stock=current_stock,
+        is_active=product.is_active,
+    )
+
+
+@router.put("/products/{product_id}", response_model=SKUResponse)
+def update_product(
+    product_id: int,
+    payload: SKUCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    product = db.get(SKU, product_id)
+    if not product or not product.is_active:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    duplicate = db.exec(
+        select(SKU).where(SKU.sku == payload.sku, SKU.id != product_id)
+    ).first()
+    if duplicate:
+        raise HTTPException(
+            status_code=409, detail="Product code already exists")
+
+    for field, value in payload.model_dump().items():
+        setattr(product, field, value)
+
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+
+    current_stock = calculate_stock(db, product.id, product.warehouse)
+    return SKUResponse(
+        id=product.id,
+        name=product.name,
+        sku=product.sku,
+        client_name=product.client_name,
+        category=product.category,
+        warehouse=product.warehouse,
+        current_stock=current_stock,
+        is_active=product.is_active,
+    )
+
+
+@router.delete("/products/{product_id}", response_model=SKUResponse)
+def deactivate_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    product = db.get(SKU, product_id)
+    if not product or not product.is_active:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    product.is_active = False
+    db.add(product)
+    db.commit()
+    db.refresh(product)
+
+    current_stock = calculate_stock(db, product.id, product.warehouse)
+    return SKUResponse(
+        id=product.id,
+        name=product.name,
+        sku=product.sku,
+        client_name=product.client_name,
+        category=product.category,
+        warehouse=product.warehouse,
+        current_stock=current_stock,
+        is_active=product.is_active,
     )
 
 
@@ -122,7 +203,7 @@ def create_inbound_order(
 ):
     product = db.get(SKU, payload.sku_id)
 
-    if not product:
+    if not product or not product.is_active:
         raise HTTPException(status_code=404, detail="Product not found")
 
     order = StockEntry(
@@ -145,7 +226,7 @@ def create_outbound_order(
 ):
     product = db.get(SKU, payload.sku_id)
 
-    if not product:
+    if not product or not product.is_active:
         raise HTTPException(status_code=404, detail="Product not found")
 
     available = calculate_stock(

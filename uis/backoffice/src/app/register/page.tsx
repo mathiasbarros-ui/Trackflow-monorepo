@@ -1,5 +1,7 @@
 "use client";
 
+import { usePreferences } from "@/hooks/usePreferences";
+
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
@@ -12,6 +14,7 @@ type FieldErrors = {
 };
 
 export default function RegisterPage() {
+  const { t } = usePreferences();
   const { register } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -27,7 +30,7 @@ export default function RegisterPage() {
     const nextErrors: FieldErrors = {};
 
     if (!email.includes("@")) {
-      nextErrors.email = "Ingresa un email valido";
+      nextErrors.email = "Ingresa un email válido";
     }
 
     if (password.length < 8) {
@@ -69,7 +72,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <AuthCard title="Crear cuenta" description="Completa tus datos para registrarte y acceder.">
+    <AuthCard title={t("Crear cuenta")} description={t("Completa tus datos para registrarte y acceder.")}>
         <form className="authForm" onSubmit={handleSubmit}>
           <label>
             Email
@@ -80,12 +83,10 @@ export default function RegisterPage() {
               required
               autoComplete="email"
             />
-            {fieldErrors.email ? <small className="fieldError">{fieldErrors.email}</small> : null}
+            {fieldErrors.email ? <small className="fieldError">{t(fieldErrors.email)}</small> : null}
           </label>
 
-          <label>
-            Contraseña
-            <input
+          <label>{t(" Contraseña ")}<input
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -93,33 +94,26 @@ export default function RegisterPage() {
               required
               autoComplete="new-password"
             />
-            {fieldErrors.password ? <small className="fieldError">{fieldErrors.password}</small> : null}
+            {fieldErrors.password ? <small className="fieldError">{t(fieldErrors.password)}</small> : null}
           </label>
 
-          <label>
-            Nombre
-            <input type="text" value={name} onChange={(event) => setName(event.target.value)} />
+          <label>{t(" Nombre ")}<input type="text" value={name} onChange={(event) => setName(event.target.value)} />
           </label>
 
-          <label>
-            Telefono
-            <input type="text" value={phone} onChange={(event) => setPhone(event.target.value)} />
+          <label>{t(" Teléfono ")}<input type="text" value={phone} onChange={(event) => setPhone(event.target.value)} />
           </label>
 
-          <label>
-            Direccion
-            <input type="text" value={address} onChange={(event) => setAddress(event.target.value)} />
+          <label>{t(" Dirección ")}<input type="text" value={address} onChange={(event) => setAddress(event.target.value)} />
           </label>
 
           <button type="submit" disabled={loading}>
-            {loading ? "Registrando..." : "Crear cuenta"}
+            {loading ? t("Registrando...") : t("Crear cuenta")}
           </button>
         </form>
 
-        {error ? <p className="error">{error}</p> : null}
+        {error ? <p className="error">{t(error)}</p> : null}
 
-        <p className="authFootnote">
-          Ya tienes cuenta? <Link href="/login">Inicia sesion</Link>
+        <p className="authFootnote">{t(" ¿Ya tienes cuenta? ")}<Link href="/login">{t("Inicia sesión")}</Link>
         </p>
     </AuthCard>
   );

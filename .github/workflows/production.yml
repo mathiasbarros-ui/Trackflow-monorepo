@@ -57,6 +57,9 @@ jobs:
           cache-dependency-path: uis/${{ matrix.app }}/package-lock.json
       - run: npm ci --no-audit --no-fund
       - run: npx tsc --noEmit
+      - name: Session transfer tests
+        if: matrix.app == 'website'
+        run: node --test ../shared/session.test.mjs
       - run: npm run build -- --webpack
         env:
           NEXT_TELEMETRY_DISABLED: "1"
@@ -79,6 +82,7 @@ jobs:
           APP: ${{ matrix.app }}
           REPOSITORY: ${{ github.repository }}
           BACKOFFICE_URL: ${{ vars.PRODUCTION_BACKOFFICE_URL }}
+          WEBSITE_URL: ${{ vars.PRODUCTION_WEBSITE_URL }}
         run: |
           echo "prefix=ghcr.io/${REPOSITORY,,}" >> "$GITHUB_OUTPUT"
           if [[ "$APP" == backend ]]; then
@@ -89,6 +93,10 @@ jobs:
           if [[ "$APP" != backend && "$GITHUB_REF" == refs/heads/main && "$GITHUB_EVENT_NAME" != pull_request ]]; then
             if [[ ! "$BACKOFFICE_URL" =~ ^https://[a-zA-Z0-9.-]+$ ]]; then
               echo "::error::Set repository variable PRODUCTION_BACKOFFICE_URL to https://app.your-domain.com"
+              exit 1
+            fi
+            if [[ ! "$WEBSITE_URL" =~ ^https://[a-zA-Z0-9.-]+$ ]]; then
+              echo "::error::Set repository variable PRODUCTION_WEBSITE_URL to https://www.your-domain.com"
               exit 1
             fi
           fi
@@ -108,6 +116,7 @@ jobs:
           build-args: |
             APP=${{ matrix.app }}
             NEXT_PUBLIC_BACKOFFICE_URL=${{ vars.PRODUCTION_BACKOFFICE_URL || 'https://app.example.com' }}
+            NEXT_PUBLIC_WEBSITE_URL=${{ vars.PRODUCTION_WEBSITE_URL || 'https://www.example.com' }}
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,mode=max,scope=${{ matrix.app }}
 
@@ -159,13 +168,13 @@ jobs:
       - name: Deploy exact commit
         if: steps.current.outputs.deploy == 'true'
         env:
-          HOST: ${{ secrets.VPS_HOST || secrets.DO_HOST }}
-          PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
-          USER: ${{ secrets.VPS_USER || secrets.DO_USER }}
+          HOST: ${{ secrets.DO_HOST || secrets.VPS_HOST }}
+          PORT: ${{ secrets.DO_SSH_PORT || secrets.VPS_SSH_PORT || '22' }}
+          USER: ${{ secrets.DO_USER || secrets.VPS_USER }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [[ -z "$HOST" || -z "$USER" ]]; then
-            echo "::error::VPS_HOST and VPS_USER must be configured in repository secrets"
+            echo "::error::Configure DO_HOST and DO_USER as environment secrets in production"
             exit 1
           fi
           set -euo pipefail
@@ -196,9 +205,9 @@ jobs:
       - name: Remove temporary registry credentials
         if: always() && steps.current.outputs.deploy == 'true'
         env:
-          HOST: ${{ secrets.VPS_HOST || secrets.DO_HOST }}
-          PORT: ${{ secrets.VPS_SSH_PORT || '22' }}
-          USER: ${{ secrets.VPS_USER || secrets.DO_USER }}
+          HOST: ${{ secrets.DO_HOST || secrets.VPS_HOST }}
+          PORT: ${{ secrets.DO_SSH_PORT || secrets.VPS_SSH_PORT || '22' }}
+          USER: ${{ secrets.DO_USER || secrets.VPS_USER }}
         run: |
           set +e
           if [[ -z "$HOST" || -z "$USER" ]]; then

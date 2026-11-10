@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from app.auth import routes
 
 
@@ -11,18 +13,47 @@ GENERIC_MESSAGE = "Si esa direccion esta registrada, recibiras un enlace en brev
 
 
 def test_forgot_password_camino_exitoso(client, monkeypatch):
+    monkeypatch.setenv("RESEND_API_KEY", "test-key")
     monkeypatch.setattr(routes, "get_user_by_email", lambda email: {"id": "1", "email": email})
     inserted = []
+    sent = []
     monkeypatch.setattr(routes.reset_tokens_table, "insert", lambda data: inserted.append(data))
+    monkeypatch.setattr(
+        routes,
+        "send_password_reset_email",
+        lambda email, token: sent.append((email, token)),
+    )
 
     response = client.post("/auth/forgot-password", json={"email": "a@example.com"})
 
     assert response.status_code == 200
     assert response.json() == {"message": GENERIC_MESSAGE}
     assert inserted[0]["used"] is False
+    assert sent[0][0] == "a@example.com"
+    assert sent[0][1]
+
+
+def test_forgot_password_falla_si_no_hay_configuracion_de_email(
+    client,
+    monkeypatch,
+):
+    monkeypatch.delenv("RESEND_API_KEY", raising=False)
+    monkeypatch.setattr(
+        routes,
+        "get_user_by_email",
+        lambda email: pytest.fail("No debe consultar usuarios sin email configurado"),
+    )
+
+    response = client.post("/auth/forgot-password", json={"email": "a@example.com"})
+
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "El servicio de correo de recuperación no está configurado."
+    }
 
 
 def test_forgot_password_caso_limite_email_no_registrado(client, monkeypatch):
+    monkeypatch.setenv("RESEND_API_KEY", "test-key")
     monkeypatch.setattr(routes, "get_user_by_email", lambda email: None)
 
     response = client.post("/auth/forgot-password", json={"email": "none@example.com"})

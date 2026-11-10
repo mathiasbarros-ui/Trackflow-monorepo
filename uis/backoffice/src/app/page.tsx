@@ -1,7 +1,12 @@
+"use client";
+
+import { usePreferences } from "@/hooks/usePreferences";
+
 import Link from "next/link";
 
 
 export default function Home() {
+  const { t } = usePreferences();
 
   return (
 
@@ -14,32 +19,27 @@ export default function Home() {
         </span>
 
 
-        <h1>
-          Backoffice operativo
-        </h1>
+        <h1>{t(" Backoffice operativo ")}</h1>
 
 
-        <p>
-          Herramientas internas
-          para gestión y análisis
-          de operaciones.
-        </p>
+        <p>{t(" Herramientas internas para gestión y análisis de operaciones. ")}</p>
 
 
         <Link
           href="/incidents"
           className="button"
-        >
-          Analizar incidencias
-        </Link>
+        >{t(" Analizar incidencias ")}</Link>
 
         <Link
           href="/suppliers"
           className="button"
+        >{t(" Administrar proveedores ")}</Link>
+
+        <Link
+          href="/incidents"
+          className="button"
           style={{ marginLeft: "12px" }}
-        >
-          Directorio de proveedores
-        </Link>
+        >{t(" Analizar incidencias ")}</Link>
 
       </section>
 

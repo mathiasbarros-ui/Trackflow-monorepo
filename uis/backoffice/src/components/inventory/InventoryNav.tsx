@@ -1,22 +1,25 @@
 "use client";
 
+import { usePreferences } from "@/hooks/usePreferences";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import styles from "@/app/backoffice/inventory/inventory.module.css";
 
 const inventoryRoutes = [
-  { href: "/backoffice/inventory/products", label: "Productos" },
+  { href: "/suppliers", label: "Proveedores" },
   { href: "/backoffice/inventory/orders/inbound", label: "Nueva entrada" },
   { href: "/backoffice/inventory/orders/outbound", label: "Nueva salida" },
   { href: "/backoffice/inventory/orders", label: "Historial" },
 ];
 
 export default function InventoryNav() {
+  const { t } = usePreferences();
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Secciones de inventario" className={styles.nav}>
+    <nav aria-label={t("Secciones de inventario")} className={styles.nav}>
       {inventoryRoutes.map(({ href, label }) => {
         const isCurrent = pathname === href;
 
@@ -27,7 +30,7 @@ export default function InventoryNav() {
             href={href}
             key={href}
           >
-            {label}
+            {t(label)}
           </Link>
         );
       })}

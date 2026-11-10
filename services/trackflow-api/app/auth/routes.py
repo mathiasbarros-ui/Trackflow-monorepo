@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 
 from app.auth.database import reset_tokens_table
 from app.auth.email_service import send_password_reset_email
+from app.auth.login_history import record_login_attempt
 from app.auth.services import (
     get_profile_by_user_id,
     get_user_by_email,
@@ -157,6 +158,39 @@ def get_current_user(
         )
 
 
+def require_admin_user(
+    current_user: dict = Depends(get_current_user),
+) -> dict:
+    if current_user["role"] not in ("admin", "superadmin"):
+        raise HTTPException(
+            status_code=403,
+            detail="Solo un admin puede acceder a esta sección",
+        )
+
+    return current_user
+
+
+def require_superadmin_user(
+    current_user: dict = Depends(get_current_user),
+) -> dict:
+    if current_user["role"] != "superadmin":
+        raise HTTPException(
+            status_code=403,
+            detail="Solo un superadmin puede acceder a esta sección",
+        )
+    return current_user
+
+
+def record_authentication_result(email: str, user: dict | None, method: str) -> None:
+    account = user if user is not None else get_user_by_email(email)
+    record_login_attempt(
+        email=email,
+        user_id=account["id"] if account else None,
+        succeeded=user is not None,
+        method=method,
+    )
+
+
 @router.post("/token", response_model=AccessTokenResponse)
 def login_token(
     form: OAuth2PasswordRequestForm = Depends()
@@ -168,6 +202,7 @@ def login_token(
         form.username,
         form.password
     )
+    record_authentication_result(form.username, user, "token")
 
     if not user:
         raise HTTPException(
@@ -214,6 +249,15 @@ def forgot_password(data: ForgotPasswordInput):
     generic_message = (
         "Si esa direccion esta registrada, recibiras un enlace en breve."
     )
+    if not os.getenv("RESEND_API_KEY", "").strip():
+        logger.error(
+            "No se puede procesar la recuperación: RESEND_API_KEY no está configurada"
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="El servicio de correo de recuperación no está configurado.",
+        )
+
     user = get_user_by_email(data.email)
 
     if not user:
@@ -239,13 +283,10 @@ def forgot_password(data: ForgotPasswordInput):
         }
     )
 
-    if os.getenv("RESEND_API_KEY"):
-        try:
-            send_password_reset_email(user["email"], raw_token)
-        except RuntimeError:
-            logger.warning("No se pudo enviar el email de recuperación", exc_info=False)
-    else:
-        logger.info("RESEND_API_KEY no configurada; no se envio email de recuperacion")
+    try:
+        send_password_reset_email(user["email"], raw_token)
+    except RuntimeError:
+        logger.warning("No se pudo enviar el email de recuperación", exc_info=True)
 
     return {"message": generic_message}
 
@@ -294,6 +335,7 @@ def login(
         data.email,
         data.password
     )
+    record_authentication_result(data.email, user, "login")
 
     if not user:
         raise HTTPException(

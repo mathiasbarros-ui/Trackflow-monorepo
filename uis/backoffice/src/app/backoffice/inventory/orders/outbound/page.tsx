@@ -1,5 +1,7 @@
 "use client";
 
+import { usePreferences } from "@/hooks/usePreferences";
+
 import { useEffect, useState, type FormEvent } from "react";
 
 import InventoryNav from "@/components/inventory/InventoryNav";
@@ -14,6 +16,7 @@ import type { SKU } from "@/types/inventory";
 import styles from "@/app/backoffice/inventory/inventory.module.css";
 
 export default function OutboundPage() {
+  const { t } = usePreferences();
   const { authFetch } = useAuth();
   const [products, setProducts] = useState<SKU[]>([]);
   const [productId, setProductId] = useState("");
@@ -138,21 +141,21 @@ export default function OutboundPage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>Inventario / Movimientos</p>
-          <h1 className={styles.title}>Registrar salida</h1>
-          <p className={styles.description}>Consultá el stock por SKU y almacén antes de confirmar.</p>
+          <p className={styles.eyebrow}>{t("Inventario / Movimientos")}</p>
+          <h1 className={styles.title}>{t("Registrar salida")}</h1>
+          <p className={styles.description}>{t("Consultá el stock por SKU y almacén antes de confirmar.")}</p>
         </div>
       </header>
       <InventoryNav />
 
-      {error && <p className={styles.error} role="alert">{error}</p>}
-      {success && <p className={styles.success} role="status">{success}</p>}
+      {error && <p className={styles.error} role="alert">{t(error)}</p>}
+      {success && <p className={styles.success} role="status">{t(success)}</p>}
       {!loadingProducts && !error && products.length === 0 && (
-        <p className={styles.state}>No hay SKUs disponibles. Verificá que el seed de inventario esté cargado.</p>
+        <p className={styles.state}>{t("No hay SKUs disponibles. Verificá que el seed de inventario esté cargado.")}</p>
       )}
 
       {loadingProducts ? (
-        <p className={styles.state} role="status">Cargando SKUs...</p>
+        <p className={styles.state} role="status">{t("Cargando SKUs...")}</p>
       ) : products.length > 0 && !error ? (
         <form className={styles.form} onSubmit={handleSubmit}>
           <label className={styles.field}>
@@ -166,7 +169,7 @@ export default function OutboundPage() {
               }}
               required
             >
-              <option value="">Seleccioná un SKU</option>
+              <option value="">{t("Seleccioná un SKU")}</option>
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
                   {product.name} · {product.sku}
@@ -177,15 +180,15 @@ export default function OutboundPage() {
 
           {selectedProduct && (
             <div aria-live="polite" className={styles.stockPanel}>
-              <span>Stock disponible en {selectedProduct.warehouse}</span>
+              <span>{t("Stock disponible en ")}{selectedProduct.warehouse}</span>
               <strong className={styles.stockValue}>
-                {loadingStock ? "Consultando..." : currentStock ?? "No disponible"}
+                {loadingStock ? t("Consultando...") : currentStock ?? t("No disponible")}
               </strong>
             </div>
           )}
 
           <label className={styles.field}>
-            <span>Cantidad</span>
+            <span>{t("Cantidad")}</span>
             <input
               aria-describedby={quantityError ? "outbound-quantity-error" : undefined}
               min="1"
@@ -201,14 +204,12 @@ export default function OutboundPage() {
           </label>
 
           {exceedsStock && (
-            <p className={styles.inlineWarning}>
-              La cantidad supera el stock mostrado. El backend volverá a validar la disponibilidad al confirmar.
-            </p>
+            <p className={styles.inlineWarning}>{t(" La cantidad supera el stock mostrado. El backend volverá a validar la disponibilidad al confirmar. ")}</p>
           )}
-          {quantityError && <p className={styles.error} id="outbound-quantity-error" role="alert">{quantityError}</p>}
+          {quantityError && <p className={styles.error} id="outbound-quantity-error" role="alert">{t(quantityError)}</p>}
 
           <label className={styles.field}>
-            <span>Tipo de salida</span>
+            <span>{t("Tipo de salida")}</span>
             <select
               value={exitType}
               onChange={(event) => {
@@ -218,14 +219,14 @@ export default function OutboundPage() {
                 setError("");
               }}
             >
-              <option value="dispatch">Despacho</option>
-              <option value="loss">Pérdida</option>
+              <option value="dispatch">{t("Despacho")}</option>
+              <option value="loss">{t("Pérdida")}</option>
             </select>
           </label>
 
           {exitType === "dispatch" && (
             <label className={styles.field}>
-              <span>Número de tracking</span>
+              <span>{t("Número de tracking")}</span>
               <input
                 autoComplete="off"
                 maxLength={120}
@@ -233,12 +234,12 @@ export default function OutboundPage() {
                 onChange={(event) => setTrackingNumber(event.target.value)}
                 required
               />
-              <span className={styles.fieldHint}>Obligatorio para despacho; no se envía en una pérdida.</span>
+              <span className={styles.fieldHint}>{t("Obligatorio para despacho; no se envía en una pérdida.")}</span>
             </label>
           )}
 
           <label className={styles.field}>
-            <span>Almacén del SKU</span>
+            <span>{t("Almacén del SKU")}</span>
             <input aria-readonly="true" value={selectedProduct?.warehouse ?? ""} readOnly />
           </label>
 
@@ -247,7 +248,7 @@ export default function OutboundPage() {
             disabled={submitting || loadingStock || !selectedProduct}
             type="submit"
           >
-            {submitting ? "Guardando..." : "Registrar salida"}
+            {submitting ? t("Guardando...") : t("Registrar salida")}
           </button>
         </form>
       ) : null}

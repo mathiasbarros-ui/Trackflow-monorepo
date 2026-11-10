@@ -1,5 +1,7 @@
 "use client";
 
+import { usePreferences } from "@/hooks/usePreferences";
+
 import { useEffect, useState } from "react";
 
 import InventoryNav from "@/components/inventory/InventoryNav";
@@ -9,6 +11,7 @@ import type { StockMovement } from "@/types/inventory";
 import styles from "@/app/backoffice/inventory/inventory.module.css";
 
 export default function OrdersPage() {
+  const { t, language } = usePreferences();
   const { authFetch } = useAuth();
   const [orders, setOrders] = useState<StockMovement[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,17 +45,17 @@ export default function OrdersPage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>Inventario / Movimientos</p>
-          <h1 className={styles.title}>Historial</h1>
-          <p className={styles.description}>Movimientos registrados. Esta vista es de solo lectura.</p>
+          <p className={styles.eyebrow}>{t("Inventario / Movimientos")}</p>
+          <h1 className={styles.title}>{t("Historial")}</h1>
+          <p className={styles.description}>{t("Movimientos registrados. Esta vista es de solo lectura.")}</p>
         </div>
       </header>
       <InventoryNav />
 
-      {loading && <p className={styles.state} role="status">Cargando historial...</p>}
-      {error && <p className={styles.error} role="alert">{error}</p>}
+      {loading && <p className={styles.state} role="status">{t("Cargando historial...")}</p>}
+      {error && <p className={styles.error} role="alert">{t(error)}</p>}
       {!loading && !error && sortedOrders.length === 0 && (
-        <p className={styles.state}>Todavía no hay movimientos de inventario.</p>
+        <p className={styles.state}>{t("Todavía no hay movimientos de inventario.")}</p>
       )}
 
       {!loading && !error && sortedOrders.length > 0 && (
@@ -60,12 +63,12 @@ export default function OrdersPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th scope="col">Producto / SKU</th>
-                <th scope="col">Almacén</th>
-                <th scope="col">Cantidad</th>
-                <th scope="col">Movimiento</th>
-                <th scope="col">Fecha</th>
-                <th scope="col">Usuario</th>
+                <th scope="col">{t("Producto / SKU")}</th>
+                <th scope="col">{t("Almacén")}</th>
+                <th scope="col">{t("Cantidad")}</th>
+                <th scope="col">{t("Movimiento")}</th>
+                <th scope="col">{t("Fecha")}</th>
+                <th scope="col">{t("Usuario")}</th>
               </tr>
             </thead>
             <tbody>
@@ -79,10 +82,10 @@ export default function OrdersPage() {
                   <td>{order.quantity}</td>
                   <td>
                     <span className={`${styles.movementTag} ${order.movement_type === "inbound" ? styles.movementInbound : styles.movementOutbound}`}>
-                      {order.movement_type === "inbound" ? "Entrada" : "Salida"}
+                      {order.movement_type === "inbound" ? t("Entrada") : t("Salida")}
                     </span>
                   </td>
-                  <td>{new Date(order.created_at).toLocaleString("es-AR")}</td>
+                  <td>{new Date(order.created_at).toLocaleString(language === "en" ? "en-US" : "es-AR")}</td>
                   <td>{order.user_uuid}</td>
                 </tr>
               ))}

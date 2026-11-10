@@ -1,11 +1,14 @@
 "use client";
 
+import { usePreferences } from "@/hooks/usePreferences";
+
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 import AuthCard from "@/components/auth/AuthCard";
 
 export default function ForgotPasswordPage() {
+  const { t } = usePreferences();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,17 +35,17 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <AuthCard title="Recuperar contraseña">
+    <AuthCard title={t("Recuperar contraseña")}>
         {sent ? (
-          <p className="success">Si esa direccion esta registrada, recibiras un enlace en breve.</p>
+          <p className="success">{t("Si esa dirección está registrada, recibirás un enlace en breve.")}</p>
         ) : (
           <form className="authForm" onSubmit={handleSubmit}>
             <label>Email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" /></label>
-            <button type="submit" disabled={loading}>{loading ? "Enviando..." : "Enviar enlace"}</button>
+            <button type="submit" disabled={loading}>{loading ? t("Enviando...") : t("Enviar enlace")}</button>
           </form>
         )}
-        {error ? <p className="error">{error}</p> : null}
-        <p className="authFootnote"><Link href="/login">Volver al inicio de sesion</Link></p>
+        {error ? <p className="error">{t(error)}</p> : null}
+        <p className="authFootnote"><Link href="/login">{t("Volver al inicio de sesión")}</Link></p>
     </AuthCard>
   );
 }

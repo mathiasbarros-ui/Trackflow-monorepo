@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, Query as ApiQuery, status
+from fastapi import APIRouter, Depends, HTTPException, Query as ApiQuery, status
 from tinydb import Query
 
+from app.auth.routes import require_admin_user
 from app.suppliers.database import get_suppliers_table
 from app.suppliers.models import (
     ProductCategory,
@@ -15,7 +16,8 @@ from app.suppliers.models import (
 
 router = APIRouter(
     prefix="/suppliers",
-        tags=["suppliers"],
+    tags=["suppliers"],
+    dependencies=[Depends(require_admin_user)],
 )
 
 supplier_query = Query()

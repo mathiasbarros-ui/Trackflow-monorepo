@@ -1,5 +1,7 @@
 "use client";
 
+import { usePreferences } from "@/hooks/usePreferences";
+
 import { FormEvent, useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -7,6 +9,12 @@ import { useAuth } from "@/hooks/useAuth";
 
 type SupplierStatus = "activo" | "suspendido";
 type SupplierCategory = "electronics" | "logistics" | "metals";
+
+const CATEGORY_LABELS: Record<SupplierCategory, string> = {
+  electronics: "Electrónica",
+  logistics: "Logística",
+  metals: "Metales",
+};
 
 type Supplier = {
   id: number;
@@ -49,6 +57,7 @@ const initialForm: SupplierForm = {
 
 
 export default function SuppliersPage() {
+  const { t } = usePreferences();
   const { authFetch } = useAuth();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [countryFilter, setCountryFilter] = useState<"" | "US" | "ES">("");
@@ -203,16 +212,16 @@ export default function SuppliersPage() {
   return (
     <main className="container">
       <section className="pageHeader">
-        <h1>Directorio de proveedores</h1>
-        <p>Administra proveedores, estado y tarifa de trabajo.</p>
+        <h1>{t("Directorio de proveedores")}</h1>
+        <p>{t("Administra proveedores, estado y tarifa de trabajo.")}</p>
       </section>
 
       <section className="card">
-        <h2>Registrar proveedor</h2>
+        <h2>{t("Registrar proveedor")}</h2>
         <form className="supplierForm" onSubmit={handleCreateSupplier}>
           <input
             type="text"
-            placeholder="Nombre"
+            placeholder={t("Nombre")}
             value={form.name}
             onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
             required
@@ -232,7 +241,7 @@ export default function SuppliersPage() {
           >
             {CATEGORY_OPTIONS.map((category) => (
               <option key={category} value={category}>
-                {category}
+                {t(CATEGORY_LABELS[category])}
               </option>
             ))}
           </select>
@@ -241,7 +250,7 @@ export default function SuppliersPage() {
             type="number"
             step="0.01"
             min="0.01"
-            placeholder="Tarifa"
+            placeholder={t("Tarifa")}
             value={form.rate}
             onChange={(event) => setForm((prev) => ({ ...prev, rate: event.target.value }))}
             required
@@ -253,23 +262,23 @@ export default function SuppliersPage() {
           >
             {STATUS_OPTIONS.map((status) => (
               <option key={status} value={status}>
-                {status}
+                {t(status)}
               </option>
             ))}
           </select>
 
-          <button type="submit">Crear</button>
+          <button type="submit">{t("Crear")}</button>
         </form>
       </section>
 
       <section className="card">
-        <h2>Filtros</h2>
+        <h2>{t("Filtros")}</h2>
         <div className="supplierFilters">
           <select
             value={countryFilter}
             onChange={(event) => setCountryFilter(event.target.value as "" | "US" | "ES")}
           >
-            <option value="">Todos los países</option>
+            <option value="">{t("Todos los países")}</option>
             <option value="US">US</option>
             <option value="ES">ES</option>
           </select>
@@ -278,24 +287,24 @@ export default function SuppliersPage() {
             value={categoryFilter}
             onChange={(event) => setCategoryFilter(event.target.value as "" | SupplierCategory)}
           >
-            <option value="">Todas las categorías</option>
+            <option value="">{t("Todas las categorías")}</option>
             {CATEGORY_OPTIONS.map((category) => (
               <option key={category} value={category}>
-                {category}
+                {t(CATEGORY_LABELS[category])}
               </option>
             ))}
           </select>
         </div>
       </section>
 
-      {error && <p className="error">{error}</p>}
+      {error && <p className="error">{t(error)}</p>}
 
       <section className="card">
-        <h2>Listado</h2>
+        <h2>{t("Listado")}</h2>
         {loading ? (
-          <p>Cargando...</p>
+          <p>{t("Cargando...")}</p>
         ) : suppliers.length === 0 ? (
-          <p>No hay proveedores.</p>
+          <p>{t("No hay proveedores.")}</p>
         ) : (
           <ul className="supplierList">
             {suppliers.map((supplier) => (
@@ -303,10 +312,10 @@ export default function SuppliersPage() {
                 <div>
                   <strong>{supplier.name}</strong>
                   <div className="supplierMeta">
-                    {supplier.country} · {supplier.category}
+                    {supplier.country} · {t(CATEGORY_LABELS[supplier.category] ?? supplier.category)}
                   </div>
                   <span className={`statusBadge ${supplier.status === "activo" ? "isActive" : "isSuspended"}`}>
-                    {supplier.status}
+                    {t(supplier.status)}
                   </span>
                 </div>
 
@@ -323,11 +332,9 @@ export default function SuppliersPage() {
                       }))
                     }
                   />
-                  <button type="button" onClick={() => void updateSupplierRate(supplier.id)}>
-                    Guardar tarifa
-                  </button>
+                  <button type="button" onClick={() => void updateSupplierRate(supplier.id)}>{t(" Guardar tarifa ")}</button>
                   <button type="button" onClick={() => void toggleSupplierStatus(supplier)}>
-                    {supplier.status === "activo" ? "Suspender" : "Activar"}
+                    {supplier.status === "activo" ? t("Suspender") : t("Activar")}
                   </button>
                 </div>
               </li>

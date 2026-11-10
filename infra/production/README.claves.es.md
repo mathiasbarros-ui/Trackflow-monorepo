@@ -13,9 +13,11 @@ Los valores de ejemplo son marcadores, no credenciales utilizables.
 | --- | --- | --- | --- |
 | `DO_HOST` | Reserved IP del Droplet en DigitalOcean | GitHub: secreto del environment `production` | Si |
 | `DO_USER` | Usuario creado en el VPS: `deploy` | GitHub: secreto de `production` | Si |
+| `DO_SSH_PORT` | Puerto SSH del VPS; si no se define se usa `22` | GitHub: secreto de `production` | No |
 | `DO_SSH_PRIVATE_KEY` | Clave SSH privada exclusiva de Actions | GitHub: secreto de `production` | Si |
 | `DO_SSH_KNOWN_HOSTS` | Clave publica del host, con huella verificada | GitHub: secreto de `production` | Si |
 | `PRODUCTION_BACKOFFICE_URL` | URL HTTPS elegida para el Backoffice | GitHub: variable del repositorio | Si |
+| `PRODUCTION_WEBSITE_URL` | URL HTTPS elegida para el website | GitHub: variable del repositorio | Si |
 | Dominios y `ACME_EMAIL` | Tu DNS y correo de contacto | VPS: `/opt/trackflow/.env` | Si |
 | `JWT_SECRET` | Generacion aleatoria propia | VPS: `/opt/trackflow/.env` | Si |
 | `QDRANT_API_KEY` | Generacion aleatoria propia | VPS: `/opt/trackflow/.env` | Si |
@@ -96,7 +98,8 @@ Solo si ambas huellas coinciden, copiar la linea completa de
 `trackflow_known_hosts` en el secreto `DO_SSH_KNOWN_HOSTS`. No pegar solamente
 la huella `SHA256:...`: el secreto requiere la entrada completa de known_hosts.
 Si usas un hostname en `DO_HOST`, usar ese mismo hostname en `ssh-keyscan`.
-El workflow utiliza el puerto SSH estandar 22.
+El workflow utiliza el puerto SSH estandar 22 si no se configura el secreto
+opcional `DO_SSH_PORT`.
 
 No desactivar `StrictHostKeyChecking` ni aceptar una clave nueva sin verificarla.
 
@@ -109,6 +112,7 @@ En el repositorio:
 3. En **Environment secrets**, crear:
    - `DO_HOST`: la IP publica reservada, sin `http://` ni puerto.
    - `DO_USER`: `deploy`.
+   - `DO_SSH_PORT`: solo si el VPS no usa el puerto SSH `22`.
    - `DO_SSH_PRIVATE_KEY`: el bloque completo de la privada, incluyendo
      `-----BEGIN OPENSSH PRIVATE KEY-----` y su cierre.
    - `DO_SSH_KNOWN_HOSTS`: la entrada completa verificada en el paso anterior.
@@ -118,11 +122,12 @@ En el repositorio:
 
 ```text
 PRODUCTION_BACKOFFICE_URL=https://app.trackflow.tudominio.com
+PRODUCTION_WEBSITE_URL=https://trackflow.tudominio.com
 ```
 
-Los jobs de construccion no usan el environment `production`; por eso esta URL
-debe estar disponible como variable del repositorio. No lleva barra final y
-debe coincidir con el dominio del Backoffice configurado en el servidor.
+Los jobs de construccion no usan el environment `production`; por eso estas URLs
+deben estar disponibles como variables del repositorio. No llevan barra final y
+deben coincidir con los dominios del Backoffice y website configurados en el servidor.
 
 ## 5. Preparar el archivo privado del servidor
 
@@ -207,6 +212,7 @@ Antes del primer push de produccion:
 - [ ] La conexion SSH de `deploy` funciona con la clave exclusiva.
 - [ ] Los cuatro secretos de GitHub estan completos.
 - [ ] Existe la variable del repositorio `PRODUCTION_BACKOFFICE_URL`.
+- [ ] Existe la variable del repositorio `PRODUCTION_WEBSITE_URL`.
 - [ ] `/opt/trackflow/.env` tiene permisos `600` y claves aleatorias propias.
 - [ ] El usuario `deploy` puede ejecutar Docker y escribir en `/opt/trackflow`.
 - [ ] Se configuro copia cifrada externa antes de usar datos reales.

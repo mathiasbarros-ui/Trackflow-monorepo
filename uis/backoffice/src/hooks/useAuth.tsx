@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
+import { transferSession } from "../../../shared/session";
 
 type Profile = {
   id?: string;
@@ -130,12 +131,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.status === 401) {
         logout();
-        throw new Error("Sesion expirada. Volve a iniciar sesion.");
+        throw new Error("Sesión expirada. Volvé a iniciar sesión.");
       }
 
       return response;
     } catch (error) {
-      if (error instanceof Error && error.message.includes("Sesion expirada")) {
+      if (error instanceof Error && error.message.includes("Sesión expirada")) {
         throw error;
       }
 
@@ -169,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!response.ok) {
-        const message = await parseErrorMessage(response, "Credenciales invalidas");
+        const message = await parseErrorMessage(response, "Credenciales inválidas");
         throw new Error(message);
       }
 
@@ -178,9 +179,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: CurrentUser;
       };
 
+      if (!["admin", "superadmin"].includes(data.user.role)) {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+        dispatch({ type: "LOGOUT" });
+        transferSession(
+          process.env.NEXT_PUBLIC_WEBSITE_URL ?? "http://localhost:3000",
+          data.access_token,
+        );
+        return;
+      }
+
       localStorage.setItem(TOKEN_STORAGE_KEY, data.access_token);
       dispatch({ type: "LOGIN_SUCCESS", payload: { token: data.access_token, user: data.user } });
-      navigate("/suppliers");
+      navigate(data.user.role === "superadmin" ? "/admin" : "/suppliers");
   }
 
   async function register(input: RegisterInput) {
@@ -201,23 +212,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    const stored = localStorage.getItem(TOKEN_STORAGE_KEY);
-
-    if (!stored) {
-      dispatch({ type: "HYDRATION_COMPLETE" });
-      return;
-    }
-
-    void fetch(buildApiUrl("/auth/me"), {
-      headers: { Authorization: `Bearer ${stored}` },
-      cache: "no-store",
-    })
+    void fetch("/session", { cache: "no-store" })
       .then(async (response) => {
-        if (!response.ok) throw new Error("Sesion invalida");
-        const user = (await response.json()) as CurrentUser;
+        if (!response.ok) throw new Error("No se pudo recuperar la sesión");
+        const session: { token: string | null } = await response.json();
+        const stored = session.token ?? localStorage.getItem(TOKEN_STORAGE_KEY);
+        if (!stored) {
+          dispatch({ type: "HYDRATION_COMPLETE" });
+          return;
+        }
+        const meResponse = await fetch(buildApiUrl("/auth/me"), {
+          headers: { Authorization: `Bearer ${stored}` },
+          cache: "no-store",
+        });
+        if (!meResponse.ok) throw new Error("Sesión inválida");
+        const user = (await meResponse.json()) as CurrentUser;
+        localStorage.setItem(TOKEN_STORAGE_KEY, stored);
         dispatch({ type: "LOGIN_SUCCESS", payload: { token: stored, user } });
       })
-      .catch(() => {
+      .catch((error: unknown) => {
+        console.error("No se pudo restaurar la sesión:", error);
         localStorage.removeItem(TOKEN_STORAGE_KEY);
         dispatch({ type: "LOGOUT" });
       });

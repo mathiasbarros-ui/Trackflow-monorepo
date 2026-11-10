@@ -3,20 +3,20 @@ import os
 import sys
 from pathlib import Path
 
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+from sqlalchemy import inspect, text
 from sqlmodel import SQLModel
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
-from pydantic import BaseModel
-
 from app.auth.database import engine
+from app.auth.admin import router as admin_router
 from app.auth.profiles import router as profiles_router
-from app.auth.routes import router as auth_router
+from app.auth.routes import require_admin_user, router as auth_router
 from app.auth.users import router as users_router
 from app.incidents.routes import router as incidents_router
 from app.suppliers.routes import router as suppliers_router
@@ -39,10 +39,6 @@ app = FastAPI(
 )
 
 
-class HomeResponse(BaseModel):
-    message: str
-
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=json.loads(
@@ -56,6 +52,7 @@ app.add_middleware(
 app.include_router(users_router)
 app.include_router(profiles_router)
 app.include_router(auth_router)
+app.include_router(admin_router)
 app.include_router(incidents_router)
 app.include_router(suppliers_router)
 app.include_router(knowledge_router)
@@ -65,18 +62,41 @@ LAST_ANALYSIS = None
 
 SQLModel.metadata.create_all(engine)
 
+
+def ensure_inventory_schema(database_engine):
+    with database_engine.begin() as connection:
+        columns = {
+            column["name"]
+            for column in inspect(connection).get_columns("sku")
+        }
+        if "is_active" not in columns:
+            connection.execute(
+                text(
+                    "ALTER TABLE sku "
+                    "ADD COLUMN is_active BOOLEAN NOT NULL DEFAULT TRUE"
+                )
+            )
+
+
+ensure_inventory_schema(engine)
+
 app.include_router(inventory_router)
 
 
-@app.get("/", response_model=HomeResponse)
+@app.get("/", include_in_schema=False)
 def home():
     return {
-        "message": "TrackFlow API funcionando"
+        "service": "TrackFlow API",
+        "docs": "/docs",
+        "suppliers": "/suppliers",
     }
 
 
 @app.post("/api/incidents/analyze")
-async def analyze_incidents(file: UploadFile = File(...)):
+async def analyze_incidents(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(require_admin_user),
+):
     if analyze_csv_text is None:
         raise HTTPException(
             status_code=501,
@@ -128,7 +148,7 @@ async def analyze_incidents(file: UploadFile = File(...)):
         },
     },
 )
-def export_results():
+def export_results(current_user: dict = Depends(require_admin_user)):
     if summary_to_csv is None:
         raise HTTPException(
             status_code=501,

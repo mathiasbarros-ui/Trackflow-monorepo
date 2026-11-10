@@ -1,18 +1,24 @@
 import os
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 
 
 def get_frontend_url() -> str:
-    configured_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    configured_url = os.getenv("FRONTEND_URL", "http://localhost:3001")
+    parsed_url = urlsplit(configured_url)
     codespace_name = os.getenv("CODESPACE_NAME")
     forwarding_domain = os.getenv("GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN")
 
     if (
-        configured_url.rstrip("/") == "http://localhost:3000"
+        parsed_url.scheme == "http"
+        and parsed_url.hostname in ("localhost", "127.0.0.1", "::1")
+        and parsed_url.port is not None
+        and parsed_url.path in ("", "/")
+        and not parsed_url.query
+        and not parsed_url.fragment
         and codespace_name
         and forwarding_domain
     ):
-        return f"https://{codespace_name}-3000.{forwarding_domain}"
+        return f"https://{codespace_name}-{parsed_url.port}.{forwarding_domain}"
 
     return configured_url.rstrip("/")
 

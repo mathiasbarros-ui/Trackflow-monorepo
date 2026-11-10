@@ -1,0 +1,59 @@
+.preferences {
+  margin-block: 28px;
+  padding-block: 24px;
+  border-block: 1px solid var(--preference-border, #d1d8d3);
+}
+.preferences h2 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+.preference-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  min-height: 60px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.preference-row select {
+  width: 150px;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--preference-border, #a5b4ab);
+  border-radius: 6px;
+  background: var(--preference-control, #fff);
+  color: inherit;
+  font: inherit;
+}
+.preference-row .theme-switch {
+  appearance: none;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 28px;
+  margin: 0;
+  padding: 3px;
+  border: 1px solid #6b7972;
+  border-radius: 20px;
+  background: #738178;
+  cursor: pointer;
+}
+.theme-switch::before {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+}
+.preference-row .theme-switch:checked { background: #26734a; border-color: #26734a; }
+.theme-switch:checked::before { transform: translateX(20px); }
+.preferences :focus-visible { outline: 3px solid #508bff; outline-offset: 4px; }
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --preference-border: #52615b;
+  --preference-control: #202725;
+}

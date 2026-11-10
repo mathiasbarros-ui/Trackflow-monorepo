@@ -116,6 +116,7 @@ Configurar estos secretos en ese environment:
 | --- | --- |
 | `DO_HOST` | Reserved IPv4 publica o hostname del servidor |
 | `DO_USER` | `deploy` |
+| `DO_SSH_PORT` | Puerto SSH del VPS (opcional; por defecto `22`) |
 | `DO_SSH_PRIVATE_KEY` | Clave privada exclusiva de despliegue |
 | `DO_SSH_KNOWN_HOSTS` | Entrada completa de known_hosts verificada |
 
@@ -127,10 +128,11 @@ Crear ademas la **variable del repositorio** (no solo del environment):
 
 ```text
 PRODUCTION_BACKOFFICE_URL=https://app.trackflow.tudominio.com
+PRODUCTION_WEBSITE_URL=https://trackflow.tudominio.com
 ```
 
-Next.js integra `NEXT_PUBLIC_*` en la compilacion. Esta URL debe coincidir con
-`BACKOFFICE_DOMAIN` del VPS. Cambiarla requiere reconstruir las imagenes.
+Next.js integra `NEXT_PUBLIC_*` en la compilacion. Estas URLs deben coincidir con
+`BACKOFFICE_DOMAIN` y `WEBSITE_DOMAIN` del VPS, respectivamente. Cambiarlas requiere reconstruir las imagenes.
 `BACKEND_API_URL=http://backend:8000` es interno, nunca una URL del navegador.
 
 Habilitar Actions y el permiso de escritura de paquetes para `GITHUB_TOKEN`.

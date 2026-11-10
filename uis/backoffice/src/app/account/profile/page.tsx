@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 
 import { useAuth } from "@/hooks/useAuth";
+import { usePreferences } from "@/hooks/usePreferences";
 
 type ProfileForm = {
   name: string;
@@ -19,6 +20,7 @@ const initialForm: ProfileForm = {
 
 export default function AccountProfilePage() {
   const { user, fetchMe, authFetch } = useAuth();
+  const { theme, language, setPreferences, t } = usePreferences();
 
   const [form, setForm] = useState<ProfileForm>(initialForm);
   const [loading, setLoading] = useState(true);
@@ -92,45 +94,54 @@ export default function AccountProfilePage() {
   return (
     <main className="container">
       <section className="pageHeader">
-        <h1>Mi perfil</h1>
-        <p>Gestiona tu informacion de cuenta.</p>
+        <h1>{t("Mi perfil")}</h1>
+        <p>{t("Gestiona tu información de cuenta.")}</p>
       </section>
 
       <section className="card">
-        <h2>Cuenta</h2>
+        <h2>{t("Cuenta")}</h2>
         <p>
           <strong>Email:</strong> {user?.email ?? "-"}
         </p>
       </section>
 
+      <section className="preferences" aria-labelledby="preferences-heading">
+        <h2 id="preferences-heading">{t("Preferencias")}</h2>
+        <label className="preference-row">
+          <span>{t("Modo oscuro")}</span>
+          <input className="theme-switch" type="checkbox" role="switch" checked={theme === "dark"} onChange={(event) => setPreferences({ theme: event.target.checked ? "dark" : "light" })} />
+        </label>
+        <label className="preference-row">
+          <span id="language-label">{t("Idioma")}</span>
+          <select aria-labelledby="language-label" value={language} onChange={(event) => setPreferences({ language: event.target.value === "en" ? "en" : "es" })}>
+            <option value="es" lang="es">Español</option>
+            <option value="en" lang="en">English</option>
+          </select>
+        </label>
+      </section>
+
       <section className="card">
-        <h2>Datos de contacto</h2>
+        <h2>{t("Datos de contacto")}</h2>
 
         {loading ? (
-          <p>Cargando perfil...</p>
+          <p>{t("Cargando perfil...")}</p>
         ) : (
           <form className="authForm" onSubmit={handleSubmit}>
-            <label>
-              Nombre
-              <input
+            <label>{t(" Nombre ")}<input
                 type="text"
                 value={form.name}
                 onChange={(event) => setForm((prev) => ({ ...prev, name: event.target.value }))}
               />
             </label>
 
-            <label>
-              Telefono
-              <input
+            <label>{t(" Teléfono ")}<input
                 type="text"
                 value={form.phone}
                 onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
               />
             </label>
 
-            <label>
-              Direccion
-              <input
+            <label>{t(" Dirección ")}<input
                 type="text"
                 value={form.address}
                 onChange={(event) => setForm((prev) => ({ ...prev, address: event.target.value }))}
@@ -138,15 +149,15 @@ export default function AccountProfilePage() {
             </label>
 
             <button type="submit" disabled={saving}>
-              {saving ? "Guardando..." : "Guardar cambios"}
+              {saving ? t("Guardando...") : t("Guardar cambios")}
             </button>
           </form>
         )}
 
-        {error ? <p className="error">{error}</p> : null}
-        {success ? <p className="success">{success}</p> : null}
+        {error ? <p className="error">{t(error)}</p> : null}
+        {success ? <p className="success">{t(success)}</p> : null}
         <p className="authFootnote">
-          <Link href="/account/change-password">Cambiar contraseña</Link>
+          <Link href="/account/change-password">{t("Cambiar contraseña")}</Link>
         </p>
       </section>
     </main>

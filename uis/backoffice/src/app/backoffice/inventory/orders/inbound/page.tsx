@@ -1,5 +1,7 @@
 "use client";
 
+import { usePreferences } from "@/hooks/usePreferences";
+
 import { useEffect, useState, type FormEvent } from "react";
 
 import InventoryNav from "@/components/inventory/InventoryNav";
@@ -9,6 +11,7 @@ import type { SKU } from "@/types/inventory";
 import styles from "@/app/backoffice/inventory/inventory.module.css";
 
 export default function InboundPage() {
+  const { t } = usePreferences();
   const { authFetch } = useAuth();
   const [products, setProducts] = useState<SKU[]>([]);
   const [productId, setProductId] = useState("");
@@ -87,27 +90,27 @@ export default function InboundPage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>Inventario / Movimientos</p>
-          <h1 className={styles.title}>Registrar entrada</h1>
-          <p className={styles.description}>Sumá unidades recibidas al almacén asociado al SKU.</p>
+          <p className={styles.eyebrow}>{t("Inventario / Movimientos")}</p>
+          <h1 className={styles.title}>{t("Registrar entrada")}</h1>
+          <p className={styles.description}>{t("Sumá unidades recibidas al almacén asociado al SKU.")}</p>
         </div>
       </header>
       <InventoryNav />
 
-      {error && <p className={styles.error} role="alert">{error}</p>}
-      {success && <p className={styles.success} role="status">{success}</p>}
+      {error && <p className={styles.error} role="alert">{t(error)}</p>}
+      {success && <p className={styles.success} role="status">{t(success)}</p>}
       {!loading && !error && products.length === 0 && (
-        <p className={styles.state}>No hay SKUs disponibles. Verificá que el seed de inventario esté cargado.</p>
+        <p className={styles.state}>{t("No hay SKUs disponibles. Verificá que el seed de inventario esté cargado.")}</p>
       )}
 
       {loading ? (
-        <p className={styles.state} role="status">Cargando SKUs...</p>
+        <p className={styles.state} role="status">{t("Cargando SKUs...")}</p>
       ) : products.length > 0 && !error ? (
         <form className={styles.form} onSubmit={handleSubmit}>
           <label className={styles.field}>
             <span>SKU</span>
             <select value={productId} onChange={(event) => setProductId(event.target.value)} required>
-              <option value="">Seleccioná un SKU</option>
+              <option value="">{t("Seleccioná un SKU")}</option>
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
                   {product.name} · {product.sku}
@@ -117,7 +120,7 @@ export default function InboundPage() {
           </label>
 
           <label className={styles.field}>
-            <span>Cantidad</span>
+            <span>{t("Cantidad")}</span>
             <input
               min="1"
               step="1"
@@ -129,7 +132,7 @@ export default function InboundPage() {
           </label>
 
           <label className={styles.field}>
-            <span>Referencia de recepción</span>
+            <span>{t("Referencia de recepción")}</span>
             <input
               autoComplete="off"
               maxLength={120}
@@ -141,13 +144,13 @@ export default function InboundPage() {
           </label>
 
           <label className={styles.field}>
-            <span>Almacén del SKU</span>
+            <span>{t("Almacén del SKU")}</span>
             <input aria-readonly="true" value={selectedProduct?.warehouse ?? ""} readOnly />
-            <span className={styles.fieldHint}>El movimiento se registra en este almacén.</span>
+            <span className={styles.fieldHint}>{t("El movimiento se registra en este almacén.")}</span>
           </label>
 
           <button className={`${styles.button} ${styles.buttonPrimary}`} disabled={submitting} type="submit">
-            {submitting ? "Guardando..." : "Registrar entrada"}
+            {submitting ? t("Guardando...") : t("Registrar entrada")}
           </button>
         </form>
       ) : null}
